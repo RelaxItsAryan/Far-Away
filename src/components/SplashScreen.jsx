@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import faviconImg from '../public/favicon.png';
+import faviconImg from '../../public/favicon.png';
 import splashBg from '../assets/Splash.png';
 
 const SplashScreen = ({ finishLoading }) => {

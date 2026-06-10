@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cookie } from 'lucide-react';
-import { AccessibleButton } from '../components/AccessibleButton';
+import { AccessibleButton } from './AccessibleButton';
 
 const CookieConsent = () => {
   const [isVisible, setIsVisible] = useState(false);

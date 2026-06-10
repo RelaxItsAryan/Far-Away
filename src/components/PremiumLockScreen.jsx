@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Crown, Lock } from 'lucide-react';
-import { AccessibleButton } from '../components/AccessibleButton';
+import { AccessibleButton } from './AccessibleButton';
 import { useNavigate } from 'react-router-dom';
 
 const PremiumLockScreen = ({ featureName, description }) => {

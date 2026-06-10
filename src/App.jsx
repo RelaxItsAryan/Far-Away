@@ -19,8 +19,9 @@ import AboutUs from './pages/AboutUs';
 import ResumeBuilder from './pages/ResumeBuilder';
 import UserProfile from './pages/UserProfile';
 import PricingPage from './pages/PricingPage';
+import MeetSync from './pages/MeetSync';
 import { useAuth } from './context/AuthContext';
-import faviconImg from './public/favicon.png';
+import faviconImg from '../public/favicon.png';
 import CookieConsent from './components/CookieConsent';
 import SplashScreen from './components/SplashScreen';
 import './App.css';
@@ -189,6 +190,21 @@ const Header = () => {
           </AccessibleButton>
 
 
+          <AccessibleButton variant="ghost" className="desktop-only nav-link-hover" onClick={() => navigate('/meetsync')} aria-label="Intelligent Meetings" style={{ position: 'relative' }}>
+            MeetSync
+            <span style={{
+              position: 'absolute',
+              top: '-4px',
+              right: '0',
+              background: 'var(--accent-purple)',
+              color: 'white',
+              fontSize: '0.6rem',
+              padding: '2px 6px',
+              borderRadius: '10px',
+              fontWeight: '800',
+              textTransform: 'uppercase'
+            }}></span>
+          </AccessibleButton>
           <AccessibleButton variant="ghost" className="desktop-only nav-link-hover" onClick={() => navigate('/interview-prep')} aria-label="Practice Interviews">Interview Prep</AccessibleButton>
           <AccessibleButton variant="ghost" className="desktop-only nav-link-hover" onClick={() => navigate('/resume-builder')} aria-label="AI Resume Builder">AI Resume</AccessibleButton>
           {/* <AccessibleButton variant="ghost" className="desktop-only nav-link-hover" onClick={() => navigate('/library')} aria-label="AI Library">Library</AccessibleButton> */}
@@ -348,6 +364,7 @@ const Header = () => {
                 <Link onClick={closeMobileMenu} to="/" style={mobileNavLinkStyle}>Home</Link>
                 <Link onClick={closeMobileMenu} to="/jobs" style={mobileNavLinkStyle}>Browse Jobs</Link>
                 <Link onClick={closeMobileMenu} to="/chat" style={mobileNavLinkStyle}>Chat with Asha</Link>
+                <Link onClick={closeMobileMenu} to="/meetsync" style={mobileNavLinkStyle}>MeetSync Meetings</Link>
                 <Link onClick={closeMobileMenu} to="/interview-prep" style={mobileNavLinkStyle}>Interview Prep</Link>
                 <Link onClick={closeMobileMenu} to="/resume-builder" style={mobileNavLinkStyle}>AI Resume Builder</Link>
                 <Link onClick={closeMobileMenu} to="/pricing" style={{ ...mobileNavLinkStyle, color: '#f59e0b', fontWeight: '600' }}>Premium Membership</Link>
@@ -725,6 +742,11 @@ const AnimatedRoutes = () => {
             <PricingPage />
           </motion.div>
         } />
+        <Route path="/meetsync" element={
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+            <MeetSync />
+          </motion.div>
+        } />
       </Routes>
     </AnimatePresence>
   );
@@ -745,11 +767,11 @@ const AppLayout = () => {
     <>
       <AnimatePresence>
         {showSplash && (
-          <SplashScreen 
+          <SplashScreen
             finishLoading={() => {
               setShowSplash(false);
               sessionStorage.setItem('splash-shown', 'true');
-            }} 
+            }}
           />
         )}
       </AnimatePresence>
@@ -760,12 +782,12 @@ const AppLayout = () => {
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <Header />
 
-        <main 
-          id="main-content" 
-          data-focus-area="main-content" 
-          tabIndex="-1" 
+        <main
+          id="main-content"
+          data-focus-area="main-content"
+          tabIndex="-1"
           className={!isHomePage ? 'grain-bg' : ''}
-          style={{ flex: 1, paddingTop: isHomePage ? '0' : '100px' }} 
+          style={{ flex: 1, paddingTop: isHomePage ? '0' : '100px' }}
           role="main"
         >
           <AnimatedRoutes />
