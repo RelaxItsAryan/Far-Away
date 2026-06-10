@@ -7,7 +7,6 @@ import { Link } from 'react-router-dom';
 import { getGroqResumeExtraction } from '../services/groqService';
 // import aiResumeUiImage from '../assets/ai_resume_ui.png';
 import { useAuth } from '../context/AuthContext';
-import PremiumLockScreen from '../components/PremiumLockScreen';
 import { useVoiceControl } from '../useVoiceControl';
 
 const ResumeBuilder = () => {
@@ -71,10 +70,6 @@ const ResumeBuilder = () => {
 
   if (loading) {
     return <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>Loading...</div>;
-  }
-
-  if (!userProfile || !userProfile.isPremium) {
-    return <PremiumLockScreen featureName="AI Resume Maker" description="Instantly generate structured, professional resumes from conversation using our Premium AI model." />;
   }
 
   // Extract JSON from response text

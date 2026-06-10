@@ -18,7 +18,6 @@ import InterviewPrepPage from './pages/InterviewPrepPage';
 import AboutUs from './pages/AboutUs';
 import ResumeBuilder from './pages/ResumeBuilder';
 import UserProfile from './pages/UserProfile';
-import PricingPage from './pages/PricingPage';
 import MeetSync from './pages/MeetSync';
 import { useAuth } from './context/AuthContext';
 import faviconImg from '../public/favicon.png';
@@ -185,9 +184,7 @@ const Header = () => {
         </Link>
 
         <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end', flex: '1 1 auto' }}>
-          <AccessibleButton variant="premium" className="desktop-only" onClick={() => navigate('/pricing')} aria-label="Premium Membership" style={{ gap: '9px', marginRight: '0px' }}>
-            👑 Premium
-          </AccessibleButton>
+
 
 
           <AccessibleButton variant="ghost" className="desktop-only nav-link-hover" onClick={() => navigate('/meetsync')} aria-label="Intelligent Meetings" style={{ position: 'relative' }}>
@@ -367,7 +364,7 @@ const Header = () => {
                 <Link onClick={closeMobileMenu} to="/meetsync" style={mobileNavLinkStyle}>MeetSync Meetings</Link>
                 <Link onClick={closeMobileMenu} to="/interview-prep" style={mobileNavLinkStyle}>Interview Prep</Link>
                 <Link onClick={closeMobileMenu} to="/resume-builder" style={mobileNavLinkStyle}>AI Resume Builder</Link>
-                <Link onClick={closeMobileMenu} to="/pricing" style={{ ...mobileNavLinkStyle, color: '#f59e0b', fontWeight: '600' }}>Premium Membership</Link>
+
                 <Link onClick={closeMobileMenu} to="/profile" style={mobileNavLinkStyle}>My Profile</Link>
                 <Link onClick={closeMobileMenu} to="/employer" style={mobileNavLinkStyle}>Employer Dashboard</Link>
               </div>
@@ -635,7 +632,7 @@ const Footer = () => (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <Link to="/employer" style={{ color: '#ccc', textDecoration: 'none', fontSize: '0.8rem' }}>Hire Full Time & Interns</Link>
               <Link to="/employer" style={{ color: '#ccc', textDecoration: 'none', fontSize: '0.8rem' }}>Post a Job Listing</Link>
-              <Link to="/pricing" style={{ color: '#ccc', textDecoration: 'none', fontSize: '0.8rem' }}>Premium Memberships</Link>
+
               <Link to="/contact" style={{ color: '#ccc', textDecoration: 'none', fontSize: '0.8rem' }}>Partner with Us</Link>
             </div>
           </div>
@@ -737,11 +734,7 @@ const AnimatedRoutes = () => {
             <UserProfile />
           </motion.div>
         } />
-        <Route path="/pricing" element={
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
-            <PricingPage />
-          </motion.div>
-        } />
+
         <Route path="/meetsync" element={
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
             <MeetSync />

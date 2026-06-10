@@ -1,19 +1,8 @@
 import { motion } from 'framer-motion';
 import { ExternalLink, Video, CheckCircle, BrainCircuit } from 'lucide-react';
 import { AccessibleButton } from '../components/AccessibleButton';
-import { useAuth } from '../context/AuthContext';
-import PremiumLockScreen from '../components/PremiumLockScreen';
 
 const InterviewPrepPage = () => {
-  const { userProfile, loading } = useAuth();
-
-  if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>Loading...</div>;
-  }
-
-  if (!userProfile || !userProfile.isPremium) {
-    return <PremiumLockScreen featureName="AI Interview Buddy" description="Unlock real-time mocked interviews and actionable feedback with our Premium AI Interview Buddy." />;
-  }
 
   const handleRedirect = () => {
     window.open('https://interview-buddy-v2.vercel.app/', '_blank', 'noopener,noreferrer');
