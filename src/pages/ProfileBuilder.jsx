@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ChevronRight, Upload, X } from 'lucide-react';
@@ -16,7 +16,7 @@ const STEPS = [
 
 export default function ProfileBuilder() {
   const navigate = useNavigate();
-  const { user, isAuthenticated, refreshProfile } = useAuth();
+  const { user, isAuthenticated, refreshProfile, userProfile, loading } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [isCompleted, setIsCompleted] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -24,6 +24,12 @@ export default function ProfileBuilder() {
 
   const [skills, setSkills] = useState([]);
   const [skillInput, setSkillInput] = useState('');
+
+  useEffect(() => {
+    if (userProfile?.skills) {
+      setSkills(userProfile.skills);
+    }
+  }, [userProfile]);
 
   const handleNext = () => {
     if (currentStep < 4) setCurrentStep(s => s + 1);
@@ -107,6 +113,18 @@ export default function ProfileBuilder() {
     animate: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 300, damping: 30 } },
     exit: { opacity: 0, x: -20, transition: { duration: 0.2 } }
   };
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <motion.div
+           animate={{ rotate: 360 }}
+           transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+           style={{ width: 40, height: 40, border: '4px solid var(--border)', borderTopColor: 'var(--accent-purple)', borderRadius: '50%' }}
+        />
+      </div>
+    );
+  }
 
   if (isCompleted) {
     return (
@@ -233,19 +251,19 @@ export default function ProfileBuilder() {
                 <div style={{ display: 'grid', gap: '24px', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
                   <div style={{ gridColumn: '1 / -1' }}>
                     <label htmlFor="fullName">Full Name</label>
-                    <input id="fullName" type="text" required placeholder="Priya Sharma" autoComplete="name" />
+                    <input id="fullName" type="text" required placeholder="Priya Sharma" autoComplete="name" defaultValue={userProfile?.name || user?.displayName || ''} />
                   </div>
                   <div>
                     <label htmlFor="email">Email Address</label>
-                    <input id="email" type="email" required placeholder="priya@example.com" autoComplete="email" />
+                    <input id="email" type="email" required placeholder="priya@example.com" autoComplete="email" defaultValue={userProfile?.email || user?.email || ''} />
                   </div>
                   <div>
                     <label htmlFor="phone">Phone Number</label>
-                    <input id="phone" type="tel" placeholder="+91 98765 43210" autoComplete="tel" />
+                    <input id="phone" type="tel" placeholder="+91 98765 43210" autoComplete="tel" defaultValue={userProfile?.phone || ''} />
                   </div>
                   <div>
                     <label htmlFor="state">State</label>
-                    <select id="state" required autoComplete="address-level1">
+                    <select id="state" required autoComplete="address-level1" defaultValue={userProfile?.state || ''}>
                       <option value="">Select State...</option>
                       <option value="MH">Maharashtra</option>
                       <option value="KA">Karnataka</option>
@@ -254,7 +272,7 @@ export default function ProfileBuilder() {
                   </div>
                   <div>
                     <label htmlFor="city">City</label>
-                    <input id="city" type="text" required placeholder="Bangalore" autoComplete="address-level2" />
+                    <input id="city" type="text" required placeholder="Bangalore" autoComplete="address-level2" defaultValue={userProfile?.city || ''} />
                   </div>
                   <div style={{ gridColumn: '1 / -1', marginTop: '16px' }}>
                     <label htmlFor="profilePhoto">Profile Photo (Optional)</label>
