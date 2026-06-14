@@ -148,7 +148,7 @@ export default function AboutUs() {
                 bgColor: "rgba(16, 185, 129, 0.1)"
               }
             ].map((feature, idx) => (
-              <motion.div key={idx} variants={itemVariants} className="card" style={{ padding: '40px', display: 'flex', flexDirection: 'column' }}>
+              <motion.div key={idx} variants={itemVariants} className="card" style={{ padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
                 <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: feature.bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
                   <feature.icon size={28} color={feature.color} />
                 </div>

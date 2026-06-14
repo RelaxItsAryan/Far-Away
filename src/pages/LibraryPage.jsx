@@ -187,6 +187,8 @@ const LibraryPage = () => {
                       border: '1px solid var(--border)',
                       display: 'flex',
                       flexDirection: 'column',
+                      alignItems: 'center',
+                      textAlign: 'center',
                       cursor: 'pointer',
                       transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
                       position: 'relative',
@@ -205,7 +207,7 @@ const LibraryPage = () => {
                       opacity: 0.7
                     }}></div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', width: '100%', alignItems: 'center', marginBottom: '20px', position: 'relative' }}>
                       <div style={{
                         background: 'rgba(255,255,255,0.05)',
                         padding: '12px',
@@ -225,7 +227,9 @@ const LibraryPage = () => {
                         borderRadius: '20px',
                         background: `${getLevelColor(book.level)}20`, /* 20 is small opacity */
                         color: getLevelColor(book.level),
-                        border: `1px solid ${getLevelColor(book.level)}40`
+                        border: `1px solid ${getLevelColor(book.level)}40`,
+                        position: 'absolute',
+                        right: 0
                       }}>
                         {book.level || 'All Levels'}
                       </span>
@@ -250,6 +254,7 @@ const LibraryPage = () => {
                       marginBottom: '20px',
                       display: 'flex',
                       alignItems: 'center',
+                      justifyContent: 'center',
                       gap: '6px'
                     }}>
                       <span style={{ opacity: 0.6 }}>by</span>
@@ -276,7 +281,9 @@ const LibraryPage = () => {
                       padding: '16px',
                       borderRadius: '12px',
                       marginTop: 'auto',
-                      borderLeft: '3px solid var(--accent-purple)'
+                      borderLeft: '3px solid var(--accent-purple)',
+                      width: '100%',
+                      textAlign: 'left'
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                         <GraduationCap size={16} color="var(--accent-purple)" />

@@ -173,7 +173,11 @@ const MeetSync = () => {
                 borderRadius: '32px',
                 border: '1px solid var(--border)',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.02)'
+                boxShadow: '0 10px 30px rgba(0,0,0,0.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center'
               }}
             >
               <div style={{

@@ -136,7 +136,6 @@ export default function LandingHero() {
           {/* ── LEFT: Text ── */}
           <div style={{ flex: '1 1 45%', minWidth: '300px', position: 'relative', zIndex: 10 }}>
 
-
             <motion.h1
               variants={itemVariants}
               id="hero-heading"
@@ -268,245 +267,245 @@ export default function LandingHero() {
       <div className="grain-bg" style={{ position: 'relative', zIndex: 1 }}>
         {/* ── Platform Features Section ── */}
         <section style={{ padding: '100px 24px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-            <p style={{ margin: 0, fontWeight: 700, color: 'var(--accent-teal)', textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.85rem' }}>
-              Explore Platform
-            </p>
-            <h2 style={{ fontSize: 'clamp(2.5rem, 4vw, 3.5rem)', margin: '20px 0 0', lineHeight: '1.1', color: 'var(--text-primary)' }}>
-              Comprehensive Tools for Your Success
-            </h2>
-            <p style={{ maxWidth: '700px', margin: '24px auto 0', color: 'var(--text-muted)', fontSize: '1.1rem', lineHeight: '1.7' }}>
-              Discover features specifically tailored to empower individuals with disabilities, ensuring an inclusive, efficient, and seamless job-seeking journey.
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
-            {/* Feature 1 */}
-            <motion.div
-              whileHover={{ y: -5 }}
-              style={{ padding: '32px', background: 'var(--bg-secondary)', borderRadius: '24px', border: '1px solid var(--border)' }}
-            >
-              <div style={{ width: '56px', height: '56px', borderRadius: '18px', background: 'rgba(124,58,237,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
-                <Bot size={28} color="var(--accent-purple)" />
-              </div>
-              <h3 style={{ margin: '0 0 16px', fontSize: '1.4rem', color: 'var(--text-primary)' }}>AI Chatbot Assistant</h3>
-              <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '1rem' }}>
-                Enjoy a hands-free, accessible browsing experience with our intelligent 24/7 chatbot ready to assist you anytime.
+          <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+              <p style={{ margin: 0, fontWeight: 700, color: 'var(--accent-teal)', textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.85rem' }}>
+                Explore Platform
               </p>
-            </motion.div>
-
-            {/* Feature 2 */}
-            <motion.div
-              whileHover={{ y: -5 }}
-              style={{ padding: '32px', background: 'var(--bg-secondary)', borderRadius: '24px', border: '1px solid var(--border)' }}
-            >
-              <div style={{ width: '56px', height: '56px', borderRadius: '18px', background: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
-                <FileText size={28} color="#2563EB" />
-              </div>
-              <h3 style={{ margin: '0 0 16px', fontSize: '1.4rem', color: 'var(--text-primary)' }}>AI Resume Builder</h3>
-              <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '1rem' }}>
-                Craft professional, ATS-friendly resumes effortlessly using our AI builder designed to highlight your unique strengths.
-              </p>
-            </motion.div>
-
-            {/* Feature 3 */}
-            <motion.div
-              whileHover={{ y: -5 }}
-              style={{ padding: '32px', background: 'var(--bg-secondary)', borderRadius: '24px', border: '1px solid var(--border)' }}
-            >
-              <div style={{ width: '56px', height: '56px', borderRadius: '18px', background: 'rgba(13,148,136,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
-                <Target size={28} color="var(--accent-teal)" />
-              </div>
-              <h3 style={{ margin: '0 0 16px', fontSize: '1.4rem', color: 'var(--text-primary)' }}>Interactive Interview Prep</h3>
-              <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '1rem' }}>
-                Practice with realistic, AI-powered mock interviews to boost your confidence and ace your next big opportunity.
-              </p>
-            </motion.div>
-
-            {/* Feature 4 */}
-            <motion.div
-              whileHover={{ y: -5 }}
-              style={{ padding: '32px', background: 'var(--bg-secondary)', borderRadius: '24px', border: '1px solid var(--border)' }}
-            >
-              <div style={{ width: '56px', height: '56px', borderRadius: '18px', background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
-                <Briefcase size={28} color="#F59E0B" />
-              </div>
-              <h3 style={{ margin: '0 0 16px', fontSize: '1.4rem', color: 'var(--text-primary)' }}>Accessible Job Board</h3>
-              <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '1rem' }}>
-                Browse and apply for roles easily on a smart platform tailored natively for screen readers and mobility needs.
-              </p>
-            </motion.div>
-
-            {/* Feature 5 */}
-            <motion.div
-              whileHover={{ y: -5 }}
-              style={{ padding: '32px', background: 'var(--bg-secondary)', borderRadius: '24px', border: '1px solid var(--border)' }}
-            >
-              <div style={{ width: '56px', height: '56px', borderRadius: '18px', background: 'rgba(236,72,153,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
-                <Mic size={28} color="#EC4899" />
-              </div>
-              <h3 style={{ margin: '0 0 16px', fontSize: '1.4rem', color: 'var(--text-primary)' }}>Voice Navigation</h3>
-              <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '1rem' }}>
-                Navigate the entire platform hands-free using intuitive voice commands designed for maximum accessibility.
-              </p>
-            </motion.div>
-
-            {/* Feature 6 */}
-            <motion.div
-              whileHover={{ y: -5 }}
-              style={{ padding: '32px', background: 'var(--bg-secondary)', borderRadius: '24px', border: '1px solid rgba(0,0,0,0.04)' }}
-            >
-              <div style={{ width: '56px', height: '56px', borderRadius: '18px', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
-                <Settings size={28} color="#10B981" />
-              </div>
-              <h3 style={{ margin: '0 0 16px', fontSize: '1.4rem', color: 'var(--text-primary)' }}>Personalized Accessibility Tools</h3>
-              <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '1rem' }}>
-                Customize your visual and motor experience instantly with our comprehensive built-in accessibility menu.
-              </p>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── About Section (unchanged) ── */}
-      <section style={{ padding: '80px 24px' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '50px' }}>
-            <p style={{ margin: 0, fontWeight: 700, color: 'var(--accent-purple)', textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.85rem' }}>
-              Our Commitment
-            </p>
-            <h2 style={{ fontSize: 'clamp(2.5rem, 4vw, 3.5rem)', margin: '20px 0 0', lineHeight: '1.1' }}>
-              Empowering careers through true accessibility
-            </h2>
-            <p style={{ maxWidth: '700px', margin: '24px auto 0', color: 'var(--text-muted)', fontSize: '1.05rem', lineHeight: '1.7' }}>
-              ApnaRozgaar bridges talent and inclusive employers, creating accessible job experiences from application to interview. We believe opportunity should be built for every ability.
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
-            <div style={{ padding: '28px', background: 'var(--card-bg)', borderRadius: '22px', boxShadow: 'var(--card-shadow)' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
-                <ShieldCheck size={24} color="var(--accent-purple)" />
-              </div>
-              <h3 style={{ margin: '0 0 14px', fontSize: '1.25rem' }}>Verified Inclusive Employers</h3>
-              <p style={{ margin: 0, color: 'var(--text-muted)' }}>
-                Employers are vetted for real accessibility practices so you can apply with confidence.
+              <h2 style={{ fontSize: 'clamp(2.5rem, 4vw, 3.5rem)', margin: '20px 0 0', lineHeight: '1.1', color: 'var(--text-primary)' }}>
+                Comprehensive Tools for Your Success
+              </h2>
+              <p style={{ maxWidth: '700px', margin: '24px auto 0', color: 'var(--text-muted)', fontSize: '1.1rem', lineHeight: '1.7' }}>
+                Discover features specifically tailored to empower individuals with disabilities, ensuring an inclusive, efficient, and seamless job-seeking journey.
               </p>
             </div>
 
-            <div style={{ padding: '28px', background: 'var(--card-bg)', borderRadius: '22px', boxShadow: 'var(--card-shadow)' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: 'rgba(13,148,136,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
-                <Eye size={24} color="var(--accent-teal)" />
-              </div>
-              <h3 style={{ margin: '0 0 14px', fontSize: '1.25rem' }}>Screen Reader Native</h3>
-              <p style={{ margin: 0, color: 'var(--text-muted)' }}>
-                Every component is tested against JAWS, NVDA, and VoiceOver to ensure a smooth experience.
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
+              {/* Feature 1 */}
+              <motion.div
+                whileHover={{ y: -5 }}
+                style={{ padding: '32px', background: 'var(--bg-secondary)', borderRadius: '24px', border: '1px solid var(--border)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+              >
+                <div style={{ width: '56px', height: '56px', borderRadius: '18px', background: 'rgba(124,58,237,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
+                  <Bot size={28} color="var(--accent-purple)" />
+                </div>
+                <h3 style={{ margin: '0 0 16px', fontSize: '1.4rem', color: 'var(--text-primary)' }}>AI Chatbot Assistant</h3>
+                <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '1rem' }}>
+                  Enjoy a hands-free, accessible browsing experience with our intelligent 24/7 chatbot ready to assist you anytime.
+                </p>
+              </motion.div>
+
+              {/* Feature 2 */}
+              <motion.div
+                whileHover={{ y: -5 }}
+                style={{ padding: '32px', background: 'var(--bg-secondary)', borderRadius: '24px', border: '1px solid var(--border)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+              >
+                <div style={{ width: '56px', height: '56px', borderRadius: '18px', background: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
+                  <FileText size={28} color="#2563EB" />
+                </div>
+                <h3 style={{ margin: '0 0 16px', fontSize: '1.4rem', color: 'var(--text-primary)' }}>AI Resume Builder</h3>
+                <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '1rem' }}>
+                  Craft professional, ATS-friendly resumes effortlessly using our AI builder designed to highlight your unique strengths.
+                </p>
+              </motion.div>
+
+              {/* Feature 3 */}
+              <motion.div
+                whileHover={{ y: -5 }}
+                style={{ padding: '32px', background: 'var(--bg-secondary)', borderRadius: '24px', border: '1px solid var(--border)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+              >
+                <div style={{ width: '56px', height: '56px', borderRadius: '18px', background: 'rgba(13,148,136,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
+                  <Target size={28} color="var(--accent-teal)" />
+                </div>
+                <h3 style={{ margin: '0 0 16px', fontSize: '1.4rem', color: 'var(--text-primary)' }}>Interactive Interview Prep</h3>
+                <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '1rem' }}>
+                  Practice with realistic, AI-powered mock interviews to boost your confidence and ace your next big opportunity.
+                </p>
+              </motion.div>
+
+              {/* Feature 4 */}
+              <motion.div
+                whileHover={{ y: -5 }}
+                style={{ padding: '32px', background: 'var(--bg-secondary)', borderRadius: '24px', border: '1px solid var(--border)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+              >
+                <div style={{ width: '56px', height: '56px', borderRadius: '18px', background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
+                  <Briefcase size={28} color="#F59E0B" />
+                </div>
+                <h3 style={{ margin: '0 0 16px', fontSize: '1.4rem', color: 'var(--text-primary)' }}>Accessible Job Board</h3>
+                <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '1rem' }}>
+                  Browse and apply for roles easily on a smart platform tailored natively for screen readers and mobility needs.
+                </p>
+              </motion.div>
+
+              {/* Feature 5 */}
+              <motion.div
+                whileHover={{ y: -5 }}
+                style={{ padding: '32px', background: 'var(--bg-secondary)', borderRadius: '24px', border: '1px solid var(--border)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+              >
+                <div style={{ width: '56px', height: '56px', borderRadius: '18px', background: 'rgba(236,72,153,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
+                  <Mic size={28} color="#EC4899" />
+                </div>
+                <h3 style={{ margin: '0 0 16px', fontSize: '1.4rem', color: 'var(--text-primary)' }}>Voice Navigation</h3>
+                <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '1rem' }}>
+                  Navigate the entire platform hands-free using intuitive voice commands designed for maximum accessibility.
+                </p>
+              </motion.div>
+
+              {/* Feature 6 */}
+              <motion.div
+                whileHover={{ y: -5 }}
+                style={{ padding: '32px', background: 'var(--bg-secondary)', borderRadius: '24px', border: '1px solid rgba(0,0,0,0.04)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+              >
+                <div style={{ width: '56px', height: '56px', borderRadius: '18px', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
+                  <Settings size={28} color="#10B981" />
+                </div>
+                <h3 style={{ margin: '0 0 16px', fontSize: '1.4rem', color: 'var(--text-primary)' }}>Personalized Accessibility Tools</h3>
+                <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '1rem' }}>
+                  Customize your visual and motor experience instantly with our comprehensive built-in accessibility menu.
+                </p>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── About Section (unchanged) ── */}
+        <section style={{ padding: '80px 24px' }}>
+          <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: '50px' }}>
+              <p style={{ margin: 0, fontWeight: 700, color: 'var(--accent-purple)', textTransform: 'uppercase', letterSpacing: '0.2em', fontSize: '0.85rem' }}>
+                Our Commitment
+              </p>
+              <h2 style={{ fontSize: 'clamp(2.5rem, 4vw, 3.5rem)', margin: '20px 0 0', lineHeight: '1.1' }}>
+                Empowering careers through true accessibility
+              </h2>
+              <p style={{ maxWidth: '700px', margin: '24px auto 0', color: 'var(--text-muted)', fontSize: '1.05rem', lineHeight: '1.7' }}>
+                ApnaRozgaar bridges talent and inclusive employers, creating accessible job experiences from application to interview. We believe opportunity should be built for every ability.
               </p>
             </div>
 
-            <div style={{ padding: '28px', background: 'var(--card-bg)', borderRadius: '22px', boxShadow: 'var(--card-shadow)' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: 'rgba(255,223,93,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
-                <Zap size={24} color="#F59E0B" />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
+              <div style={{ padding: '28px', background: 'var(--card-bg)', borderRadius: '22px', boxShadow: 'var(--card-shadow)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
+                  <ShieldCheck size={24} color="var(--accent-purple)" />
+                </div>
+                <h3 style={{ margin: '0 0 14px', fontSize: '1.25rem' }}>Verified Inclusive Employers</h3>
+                <p style={{ margin: 0, color: 'var(--text-muted)' }}>
+                  Employers are vetted for real accessibility practices so you can apply with confidence.
+                </p>
               </div>
-              <h3 style={{ margin: '0 0 14px', fontSize: '1.25rem' }}>Built for Speed</h3>
-              <p style={{ margin: 0, color: 'var(--text-muted)' }}>
-                Fast, responsive job search and application tools that work across assistive technologies.
-              </p>
+
+              <div style={{ padding: '28px', background: 'var(--card-bg)', borderRadius: '22px', boxShadow: 'var(--card-shadow)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: 'rgba(13,148,136,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
+                  <Eye size={24} color="var(--accent-teal)" />
+                </div>
+                <h3 style={{ margin: '0 0 14px', fontSize: '1.25rem' }}>Screen Reader Native</h3>
+                <p style={{ margin: 0, color: 'var(--text-muted)' }}>
+                  Every component is tested against JAWS, NVDA, and VoiceOver to ensure a smooth experience.
+                </p>
+              </div>
+
+              <div style={{ padding: '28px', background: 'var(--card-bg)', borderRadius: '22px', boxShadow: 'var(--card-shadow)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: 'rgba(255,223,93,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
+                  <Zap size={24} color="#F59E0B" />
+                </div>
+                <h3 style={{ margin: '0 0 14px', fontSize: '1.25rem' }}>Built for Speed</h3>
+                <p style={{ margin: 0, color: 'var(--text-muted)' }}>
+                  Fast, responsive job search and application tools that work across assistive technologies.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── Government Facilities Section ── */}
-      <section style={{ padding: '80px 24px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-            <h2 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '16px', background: 'var(--primary-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Government Schemes & Facilities
-            </h2>
-            <p style={{ fontSize: '1.15rem', color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto' }}>
-              Official resources and support programs designed to empower and assist persons with disabilities.
-            </p>
+        {/* ── Government Facilities Section ── */}
+        <section style={{ padding: '80px 24px' }}>
+          <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+              <h2 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '16px', background: 'var(--primary-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                Government Schemes & Facilities
+              </h2>
+              <p style={{ fontSize: '1.15rem', color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto' }}>
+                Official resources and support programs designed to empower and assist persons with disabilities.
+              </p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px' }}>
+
+              {/* Delhi Government Schemes */}
+              <a
+                href="https://discomm.delhi.gov.in/discomm/schemes-and-facilities-persons-disabilities"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex', flexDirection: 'column', padding: '32px', background: 'var(--card-bg)', borderRadius: '24px',
+                  boxShadow: 'var(--card-shadow)', border: '1px solid var(--border)', transition: 'all 0.3s ease', textDecoration: 'none', color: 'inherit', textAlign: 'center', alignItems: 'center'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.borderColor = 'var(--accent-purple)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+              >
+                <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(37,99,235,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
+                  <Building size={28} color="#2563EB" />
+                </div>
+                <h3 style={{ margin: '0 0 12px', fontSize: '1.4rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  Delhi State Facilities
+                  <ExternalLink size={18} color="var(--text-muted)" />
+                </h3>
+                <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.6', flex: 1 }}>
+                  Explore various official schemes, concessions, and facilities provided by the State Commissioner for Persons with Disabilities, Delhi.
+                </p>
+              </a>
+
+              {/* Gharaunda Scheme */}
+              <a
+                href="https://nationaltrust.nic.in/gharaunda-scheme/"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex', flexDirection: 'column', padding: '32px', background: 'var(--card-bg)', borderRadius: '24px',
+                  boxShadow: 'var(--card-shadow)', border: '1px solid var(--border)', transition: 'all 0.3s ease', textDecoration: 'none', color: 'inherit', textAlign: 'center', alignItems: 'center'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.borderColor = 'var(--accent-purple)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+              >
+                <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(16,185,129,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
+                  <Home size={28} color="#10B981" />
+                </div>
+                <h3 style={{ margin: '0 0 12px', fontSize: '1.4rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  Gharaunda Scheme
+                  <ExternalLink size={18} color="var(--text-muted)" />
+                </h3>
+                <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.6', flex: 1 }}>
+                  Group Home and Rehabilitation Activities providing supported living for adults with autism, cerebral palsy, mental retardation, and multiple disabilities.
+                </p>
+              </a>
+
+              {/* Niramaya Scheme */}
+              <a
+                href="http://nationaltrust.nic.in/scheme/niramaya-scheme/"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex', flexDirection: 'column', padding: '32px', background: 'var(--card-bg)', borderRadius: '24px',
+                  boxShadow: 'var(--card-shadow)', border: '1px solid var(--border)', transition: 'all 0.3s ease', textDecoration: 'none', color: 'inherit', textAlign: 'center', alignItems: 'center'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.borderColor = 'var(--accent-purple)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+              >
+                <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(239,68,68,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
+                  <Heart size={28} color="#EF4444" />
+                </div>
+                <h3 style={{ margin: '0 0 12px', fontSize: '1.4rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  Niramaya Scheme
+                  <ExternalLink size={18} color="var(--text-muted)" />
+                </h3>
+                <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.6', flex: 1 }}>
+                  A comprehensive Health Insurance Scheme providing affordable health insurance coverage to persons with disabilities nationwide.
+                </p>
+              </a>
+
+            </div>
           </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px' }}>
-
-            {/* Delhi Government Schemes */}
-            <a
-              href="https://discomm.delhi.gov.in/discomm/schemes-and-facilities-persons-disabilities"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'flex', flexDirection: 'column', padding: '32px', background: 'var(--card-bg)', borderRadius: '24px',
-                boxShadow: 'var(--card-shadow)', border: '1px solid var(--border)', transition: 'all 0.3s ease', textDecoration: 'none', color: 'inherit'
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.borderColor = 'var(--accent-purple)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
-            >
-              <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(37,99,235,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
-                <Building size={28} color="#2563EB" />
-              </div>
-              <h3 style={{ margin: '0 0 12px', fontSize: '1.4rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                Delhi State Facilities
-                <ExternalLink size={18} color="var(--text-muted)" />
-              </h3>
-              <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.6', flex: 1 }}>
-                Explore various official schemes, concessions, and facilities provided by the State Commissioner for Persons with Disabilities, Delhi.
-              </p>
-            </a>
-
-            {/* Gharaunda Scheme */}
-            <a
-              href="https://nationaltrust.nic.in/gharaunda-scheme/"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'flex', flexDirection: 'column', padding: '32px', background: 'var(--card-bg)', borderRadius: '24px',
-                boxShadow: 'var(--card-shadow)', border: '1px solid var(--border)', transition: 'all 0.3s ease', textDecoration: 'none', color: 'inherit'
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.borderColor = 'var(--accent-purple)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
-            >
-              <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(16,185,129,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
-                <Home size={28} color="#10B981" />
-              </div>
-              <h3 style={{ margin: '0 0 12px', fontSize: '1.4rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                Gharaunda Scheme
-                <ExternalLink size={18} color="var(--text-muted)" />
-              </h3>
-              <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.6', flex: 1 }}>
-                Group Home and Rehabilitation Activities providing supported living for adults with autism, cerebral palsy, mental retardation, and multiple disabilities.
-              </p>
-            </a>
-
-            {/* Niramaya Scheme */}
-            <a
-              href="http://nationaltrust.nic.in/scheme/niramaya-scheme/"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'flex', flexDirection: 'column', padding: '32px', background: 'var(--card-bg)', borderRadius: '24px',
-                boxShadow: 'var(--card-shadow)', border: '1px solid var(--border)', transition: 'all 0.3s ease', textDecoration: 'none', color: 'inherit'
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.borderColor = 'var(--accent-purple)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
-            >
-              <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(239,68,68,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
-                <Heart size={28} color="#EF4444" />
-              </div>
-              <h3 style={{ margin: '0 0 12px', fontSize: '1.4rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                Niramaya Scheme
-                <ExternalLink size={18} color="var(--text-muted)" />
-              </h3>
-              <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: '1.6', flex: 1 }}>
-                A comprehensive Health Insurance Scheme providing affordable health insurance coverage to persons with disabilities nationwide.
-              </p>
-            </a>
-
-          </div>
-        </div>
-      </section>
+        </section>
       </div>
     </div>
   );

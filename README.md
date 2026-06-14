@@ -1,24 +1,31 @@
-# 🌟 ApnaRozgaar - Inclusive Job Platform
+# 🌟 ApnaRozgaar & MeetSync - AI-Powered Inclusive Ecosystem
 
 <p align="center">
-  <img src="src/public/favicon.png" alt="ApnaRozgaar Logo" width="120" height="120" style="border-radius: 50%;" />
+  <img src="public/logo.png" alt="ApnaRozgaar Logo" width="160" height="160" style="border-radius: 20%;" />
 </p>
 
 <p align="center">
-  <b>Empowering Differently-Abled Individuals with Accessible Employment Opportunities</b>
+  <b>Empowering Differently-Abled Individuals with AI-Driven Employment & Collaboration Intelligence</b>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/React-19.x-61dafb?style=for-the-badge&logo=react" alt="React" />
   <img src="https://img.shields.io/badge/Vite-8.x-646cff?style=for-the-badge&logo=vite" alt="Vite" />
-  <img src="https://img.shields.io/badge/Firebase-Auth-ffca28?style=for-the-badge&logo=firebase" alt="Firebase" />
-  <img src="https://img.shields.io/badge/Gemini-AI-4285f4?style=for-the-badge&logo=google" alt="Gemini AI" />
+  <img src="https://img.shields.io/badge/Gemini-2.5_Flash-4285f4?style=for-the-badge&logo=google" alt="Gemini AI" />
+  <img src="https://img.shields.io/badge/Llama_3.3-Intelligence-8a2be2?style=for-the-badge&logo=meta" alt="Llama 3.3" />
+  <img src="https://img.shields.io/badge/Groq-Whisper-f59e0b?style=for-the-badge" alt="Groq Whisper" />
+    <img src="https://img.shields.io/badge/Firebase-Auth-ffca28?style=for-the-badge&logo=firebase" alt="Firebase" />
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/WCAG_2.1-AA_Compliant-059669?style=flat-square" alt="WCAG 2.1 AA" />
   <img src="https://img.shields.io/badge/Accessibility-First-7c3aed?style=flat-square" alt="Accessibility First" />
-  <img src="https://img.shields.io/badge/Voice_Control-Enabled-0d9488?style=flat-square" alt="Voice Control" />
+  <img src="https://img.shields.io/badge/AI_Assisted-Empowered-0d9488?style=flat-square" alt="AI Assisted" />
+    <img src="https://img.shields.io/badge/Voice_Control-Enabled-0d9488?style=flat-square" alt="Voice Control" />
+      <img src="https://img.shields.io/badge/Screen_Reader-Enabled-0d9488?style=flat-square" alt="Screen Reader" />
+        <img src="https://img.shields.io/badge/Motor_Accessibility-Enabled-0d9488?style=flat-square" alt="Motor Accessibility" />
+          <img src="https://img.shields.io/badge/Deaf/HoH_Support-Enabled-0d9488?style=flat-square" alt="Deaf/HoH Support" />
+            <img src="https://img.shields.io/badge/Visual_Accessibility-Enabled-0d9488?style=flat-square" alt="Visual Accessibility" />
 </p>
 
 ---
@@ -26,6 +33,7 @@
 ## 📋 Table of Contents
 
 - [About](#-about)
+- [MeetSync AI](#-meetsync-ai-intelligence)
 - [Key Features](#-key-features)
 - [Accessibility Features](#-accessibility-features)
 - [Tech Stack](#️-tech-stack)
@@ -39,7 +47,7 @@
 
 ## 🎯 About
 
-**ApnaRozgaar** is an inclusive job portal designed with an **accessibility-first approach**, connecting talented professionals with disabilities to employers who value true inclusion.
+**ApnaRozgaar** is an AI-first inclusive job portal and collaboration ecosystem. We bridge the gap between talent and opportunity by leveraging cutting-edge Large Language Models (LLMs) to ensure accessibility is never an afterthought.
 
 ### The Problem
 - 70%+ of people with disabilities face barriers in traditional job portals
@@ -53,6 +61,23 @@
 - **AI-powered assistant (Asha)** for personalized help
 - **Deaf/HoH friendly** with visual alerts & sign language support
 - **Motor accessibility tools** for users with limited mobility
+
+### 🧠 The AI Difference
+- **Asha Intelligence:** An autonomous agent that navigates the platform for you.
+- **Cognitive Filtering:** AI that understands your specific needs beyond simple keywords.
+- **MeetSync Integration:** Revolutionary meeting intelligence for the modern workspace.
+
+---
+
+## ⚡ MeetSync AI Intelligence
+
+**MeetSync** is our specialized video conferencing and collaboration hub, designed to be the "memory" for your professional interactions.
+
+### 🚀 MeetSync Features
+- **Llama 3.3 Analysis:** Automatically extracts promises, action items, and sentiment from every meeting.
+- **Hindsight Memory:** A global semantic search across all your past meetings. Ask "When did we discuss the accessibility audit?" and get the exact moment.
+- **Groq-Powered Whisper:** Near-instant, high-accuracy transcription for real-time accessibility (Captions/ASL support).
+- **Privacy First:** All audio is scrubbed post-analysis; only intelligence remains.
 
 ---
 
@@ -173,11 +198,11 @@ Control the **entire website hands-free** using natural voice commands.
 |------------|---------|---------|
 | **React** | 19.x | UI Framework |
 | **Vite** | 8.x | Build Tool & Dev Server |
-| **React Router** | 7.x | Client-side Routing |
-| **Framer Motion** | 12.x | Animations |
-| **Lucide React** | 1.x | Icon Library |
+| **Llama 3.3** | Groq | Meeting Intelligence & Analysis |
+| **Whisper-large-v3** | Groq | Ultra-fast Speech-to-Text |
+| **Google Gemini** | 2.5 Flash | Conversational AI (Asha) |
 | **Firebase** | 11.x | Authentication & Firestore |
-| **Google Gemini** | 2.5 Flash | AI Chatbot |
+| **Framer Motion** | 12.x | Premium Animations |
 | **Web Speech API** | Native | Voice Control & TTS |
 | **Canvas Confetti** | 1.x | Celebration Effects |
 
