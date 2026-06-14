@@ -9,7 +9,9 @@ import {
   isSignInWithEmailLink,
   signInWithEmailLink,
   sendEmailVerification,
-  reload
+  reload,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth';
 import { ref, set, get, update } from 'firebase/database';
 import { auth, rtdb } from './config';
@@ -255,6 +257,39 @@ export const logoutUser = async () => {
   try {
     await signOut(auth);
     return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+// Sign in with Google
+export const signInWithGoogle = async (userType = 'candidate') => {
+  try {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+
+    // Check if user already exists in RTDB
+    const userRef = ref(rtdb, `users/${user.uid}`);
+    const snapshot = await get(userRef);
+
+    if (!snapshot.exists()) {
+      // Create new user record for first-time Google sign-in
+      await set(userRef, {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        name: user.displayName,
+        userType: userType,
+        verified: true,
+        emailVerified: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      return { success: true, user, isNewUser: true };
+    }
+
+    return { success: true, user, isNewUser: false };
   } catch (error) {
     return { success: false, error: error.message };
   }

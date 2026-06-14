@@ -20,7 +20,7 @@ import ResumeBuilder from './pages/ResumeBuilder';
 import UserProfile from './pages/UserProfile';
 import MeetSync from './pages/MeetSync';
 import { useAuth } from './context/AuthContext';
-import faviconImg from '../public/favicon.png';
+const faviconImg = '/favicon.png';
 import CookieConsent from './components/CookieConsent';
 import SplashScreen from './components/SplashScreen';
 import './App.css';
