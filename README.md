@@ -1,7 +1,7 @@
 # 🌟 ApnaRozgaar & MeetSync - AI-Powered Inclusive Ecosystem
 
 <p align="center">
-  <img src="public/logo.png" alt="ApnaRozgaar Logo" width="160" height="160" style="border-radius: 20%;" />
+  <img src="public/favicon.png" alt="ApnaRozgaar Logo" width="160" height="160" style="border-radius: 20%;" />
 </p>
 
 <p align="center">
