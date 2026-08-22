@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, ShieldAlert, Upload, CheckCircle, Clock, ArrowRight, Building, HelpCircle } from 'lucide-react';
+import { FileText, ShieldAlert, Upload, CheckCircle, Clock, ArrowRight, Building, HelpCircle, Sparkles } from 'lucide-react';
 import { AccessibleButton } from '../components/AccessibleButton';
 import { saveEmployerProfile } from '../firebase/employers';
+import { verifyCompanyWithAI } from '../services/groqService';
 
 const C = {
   primary: '#091426',
@@ -64,16 +65,31 @@ export default function CompanyVerificationPage({ user, profile, onRefresh }) {
     setSubmitting(true);
     setError('');
 
+    // Trigger Groq AI Company Verification
+    const aiRes = await verifyCompanyWithAI({
+      ...formData,
+      hasDocument: !!docPreview
+    });
+
+    const isAiApproved = aiRes.status === 'verified';
+
     const payload = {
       ...formData,
       companyDocUrl: docPreview,
-      companyVerificationStatus: 'pending',
+      companyVerificationStatus: isAiApproved ? 'verified' : aiRes.status === 'rejected' ? 'rejected' : 'pending',
+      aiVerificationScore: aiRes.confidenceScore,
+      aiVerificationSummary: aiRes.summary,
+      aiRiskFlags: aiRes.riskFlags || [],
       companyVerificationSubmittedAt: new Date().toISOString()
     };
 
     const result = await saveEmployerProfile(user.uid, payload);
     if (result.success) {
-      setSuccess('Verification request submitted successfully!');
+      if (isAiApproved) {
+        setSuccess('🎉 Company verified automatically by Groq AI! You can now publish job postings.');
+      } else {
+        setSuccess('Verification request submitted! AI flagged details for quick moderator review.');
+      }
       if (onRefresh) await onRefresh();
     } else {
       setError(result.error || 'Failed to submit verification details.');
@@ -82,6 +98,7 @@ export default function CompanyVerificationPage({ user, profile, onRefresh }) {
   };
 
   const status = profile?.companyVerificationStatus;
+
 
   // 1. Pending Screen
   if (status === 'pending') {
@@ -105,7 +122,7 @@ export default function CompanyVerificationPage({ user, profile, onRefresh }) {
           <p style={{ color: C.onSurfaceVar, fontSize: '1rem', lineHeight: '1.6', marginBottom: '24px' }}>
             We've received your company profile for <strong>{profile?.companyName}</strong>. Our moderators are validating your GST registration and recruiter details.
           </p>
-          <div style={{ padding: '16px 20px', background: C.surfaceContainer, borderRadius: '12px', textAlign: 'left', marginBottom: '32px' }}>
+          <div style={{ padding: '16px 20px', background: C.surfaceContainer, borderRadius: '12px', textAlign: 'left', marginBottom: '24px' }}>
             <p style={{ margin: '0 0 8px 0', fontSize: '0.9rem', color: C.onSurface, fontWeight: 700 }}>Submitted Details:</p>
             <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '8px', fontSize: '0.85rem', color: C.onSurfaceVar }}>
               <strong>GST / Reg No:</strong> <span>{profile?.gstDetails}</span>
@@ -113,6 +130,23 @@ export default function CompanyVerificationPage({ user, profile, onRefresh }) {
               <strong>Company Email:</strong> <span>{profile?.companyEmail}</span>
             </div>
           </div>
+
+          {profile?.aiVerificationSummary && (
+            <div style={{ padding: '14px 18px', background: 'rgba(9, 20, 38, 0.03)', border: '1px solid var(--border)', borderRadius: '14px', textAlign: 'left', marginBottom: '28px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', color: 'var(--accent-purple)', fontWeight: 700, fontSize: '0.85rem' }}>
+                <Sparkles size={16} /> Groq AI Compliance Assessment
+              </div>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: C.onSurfaceVar, lineHeight: '1.5' }}>
+                {profile.aiVerificationSummary}
+              </p>
+              {profile.aiVerificationScore && (
+                <div style={{ marginTop: '8px', fontSize: '0.8rem', fontWeight: 600, color: profile.aiVerificationScore >= 70 ? 'var(--success)' : '#d97706' }}>
+                  AI Confidence Score: {profile.aiVerificationScore}%
+                </div>
+              )}
+            </div>
+          )}
+
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 }}>
             Usually verification takes 1-2 hours. You'll gain access to job posting as soon as you're approved.
           </p>

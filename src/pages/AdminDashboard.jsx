@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Building, AlertTriangle, MessageSquare, Check, X, Eye, FileText, Globe, User, Phone, MapPin } from 'lucide-react';
+import { Shield, Building, AlertTriangle, MessageSquare, Check, X, Eye, FileText, Globe, User, Phone, MapPin, Sparkles } from 'lucide-react';
 import { AccessibleButton } from '../components/AccessibleButton';
 import { useAuth } from '../context/AuthContext';
 import { getAllEmployers, saveEmployerProfile } from '../firebase/employers';
 import { getPendingJobs, getJobReports, resolveReport, updateJob, deleteJob } from '../firebase/jobs';
+import { verifyCompanyWithAI } from '../services/groqService';
+
 
 const C = {
   primary: '#091426',
@@ -78,6 +80,40 @@ export default function AdminDashboard() {
       showToast('Failed to update company status.', 'error');
     }
   };
+
+  // AI Re-verify Company Action
+  const handleAiReVerifyCompany = async (emp) => {
+    showToast(`Running Groq AI verification on ${emp.companyName}...`, 'info');
+    const aiRes = await verifyCompanyWithAI({
+      companyName: emp.companyName,
+      companyEmail: emp.companyEmail,
+      phone: emp.phone,
+      website: emp.website,
+      address: emp.address,
+      recruiterName: emp.recruiterName,
+      gstDetails: emp.gstDetails,
+      hasDocument: !!emp.companyDocUrl
+    });
+
+    const newStatus = aiRes.status === 'verified' ? 'verified' : aiRes.status === 'rejected' ? 'rejected' : 'pending';
+    const res = await saveEmployerProfile(emp.id, {
+      companyVerificationStatus: newStatus,
+      aiVerificationScore: aiRes.confidenceScore,
+      aiVerificationSummary: aiRes.summary,
+      aiRiskFlags: aiRes.riskFlags || []
+    });
+
+    if (res.success) {
+      if (newStatus === 'verified') {
+        showToast(`✨ Groq AI auto-verified ${emp.companyName}!`, 'success');
+        setPendingCompanies(prev => prev.filter(c => c.id !== emp.id));
+      } else {
+        showToast(`Groq AI Assessment: ${aiRes.summary}`, 'info');
+        setPendingCompanies(prev => prev.map(c => c.id === emp.id ? { ...c, aiVerificationScore: aiRes.confidenceScore, aiVerificationSummary: aiRes.summary } : c));
+      }
+    }
+  };
+
 
   // Moderate Job Action (Flagged Jobs)
   const handleModerateJob = async (jobId, status) => {
@@ -212,11 +248,30 @@ export default function AdminDashboard() {
                       {emp.website && <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Globe size={14} /> Web: <a href={emp.website} target="_blank" rel="noopener noreferrer">{emp.website}</a></span>}
                     </div>
 
-                    <div style={{ display: 'flex', gap: '10px', marginTop: '8px', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
+                    {emp.aiVerificationSummary && (
+                      <div style={{ background: 'rgba(9, 20, 38, 0.04)', padding: '10px 12px', borderRadius: '10px', fontSize: '0.8rem', border: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <span style={{ fontWeight: 700, color: 'var(--accent-purple)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Sparkles size={13} /> AI Verification Audit
+                          </span>
+                          {emp.aiVerificationScore && (
+                            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: emp.aiVerificationScore >= 70 ? 'var(--success)' : '#d97706' }}>
+                              Score: {emp.aiVerificationScore}%
+                            </span>
+                          )}
+                        </div>
+                        <p style={{ margin: 0, color: C.onSurfaceVar }}>{emp.aiVerificationSummary}</p>
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px', borderTop: '1px solid var(--border)', paddingTop: '12px', flexWrap: 'wrap' }}>
                       <AccessibleButton style={{ flex: 1, minHeight: '38px', fontSize: '0.85rem' }} onClick={() => handleModerateCompany(emp.id, 'verified')}>
                         <Check size={14} /> Approve
                       </AccessibleButton>
-                      <AccessibleButton variant="outline" style={{ flex: 1, minHeight: '38px', fontSize: '0.85rem', borderColor: '#ef4444', color: '#ef4444' }} onClick={() => handleModerateCompany(emp.id, 'rejected')}>
+                      <AccessibleButton variant="outline" style={{ flex: 1, minHeight: '38px', fontSize: '0.85rem', borderColor: 'var(--accent-purple)', color: 'var(--accent-purple)' }} onClick={() => handleAiReVerifyCompany(emp)}>
+                        <Sparkles size={14} /> AI Auto-Verify
+                      </AccessibleButton>
+                      <AccessibleButton variant="outline" style={{ minHeight: '38px', fontSize: '0.85rem', borderColor: '#ef4444', color: '#ef4444', padding: '0 12px' }} onClick={() => handleModerateCompany(emp.id, 'rejected')}>
                         <X size={14} /> Reject
                       </AccessibleButton>
                     </div>
@@ -248,9 +303,18 @@ export default function AdminDashboard() {
                         <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>{job.company}</span>
                       </div>
                       <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '700', background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
-                        Risk: {job.riskScore}%
+                        Groq AI Risk: {job.riskScore}%
                       </span>
                     </div>
+
+                    {job.aiVerificationSummary && (
+                      <div style={{ fontSize: '0.82rem', background: 'rgba(245,158,11,0.08)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(245,158,11,0.2)', color: '#b45309' }}>
+                        <strong style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
+                          <Sparkles size={14} /> Groq AI Risk Summary:
+                        </strong>
+                        {job.aiVerificationSummary}
+                      </div>
+                    )}
 
                     <div style={{ fontSize: '0.85rem', color: C.onSurfaceVar }}>
                       <strong style={{ color: '#ef4444', display: 'block', marginBottom: '6px' }}>Flags Detected:</strong>
@@ -260,6 +324,7 @@ export default function AdminDashboard() {
                         ))}
                       </ul>
                     </div>
+
 
                     <div style={{ fontSize: '0.82rem', background: C.surface, padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', color: C.onSurfaceVar, maxHeight: '100px', overflowY: 'auto' }}>
                       <strong>Description excerpt:</strong> {job.description}
