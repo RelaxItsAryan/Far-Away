@@ -10,23 +10,52 @@ import { rtdb } from './config';
 
 const COLLECTION = 'users';
 
+/**
+ * Firebase RTDB does not accept `undefined` values — they are silently dropped
+ * or cause write failures. This helper recursively removes undefined/null from
+ * an object and replaces empty arrays with [] (valid) rather than undefined.
+ */
+const sanitizeForRTDB = (obj) => {
+  if (Array.isArray(obj)) {
+    // Keep arrays even if empty — [] is valid in RTDB
+    return obj.map(sanitizeForRTDB);
+  }
+  if (obj !== null && typeof obj === 'object') {
+    const clean = {};
+    for (const [key, val] of Object.entries(obj)) {
+      if (val === undefined) continue; // drop undefined keys
+      clean[key] = sanitizeForRTDB(val);
+    }
+    return clean;
+  }
+  return obj;
+};
+
 // Create/Update candidate profile
 export const saveCandidateProfile = async (uid, profileData) => {
   try {
     const userRef = ref(rtdb, `${COLLECTION}/${uid}`);
     
-    // First get existing to preserve stuff
+    // First get existing to preserve fields we're not overwriting
     const snapshot = await get(userRef);
     const existing = snapshot.exists() ? snapshot.val() : {};
 
-    await update(userRef, {
+    const payload = sanitizeForRTDB({
       ...existing,
       ...profileData,
-      userType: 'candidate',
-      updatedAt: serverTimestamp()
+      userType: existing.userType || 'candidate',
+      updatedAt: new Date().toISOString()
     });
+
+    console.log('[saveCandidateProfile] Writing to RTDB path:', `${COLLECTION}/${uid}`);
+    console.log('[saveCandidateProfile] Payload:', JSON.stringify(payload, null, 2));
+
+    await set(userRef, payload);
+
+    console.log('[saveCandidateProfile] ✅ Write successful');
     return { success: true };
   } catch (error) {
+    console.error('[saveCandidateProfile] ❌ Write failed:', error.code, error.message);
     return { success: false, error: error.message };
   }
 };
@@ -38,10 +67,14 @@ export const getCandidateProfile = async (uid) => {
     const snapshot = await get(userRef);
     
     if (snapshot.exists()) {
-      return { success: true, data: { ...snapshot.val(), id: uid } };
+      const data = { ...snapshot.val(), id: uid };
+      console.log('[getCandidateProfile] Fetched profile for', uid, data);
+      return { success: true, data };
     }
+    console.warn('[getCandidateProfile] No profile found for', uid);
     return { success: false, error: 'Profile not found' };
   } catch (error) {
+    console.error('[getCandidateProfile] Error:', error.message);
     return { success: false, error: error.message };
   }
 };
@@ -101,21 +134,18 @@ export const updateCertificationStatus = async (uid, status, photoBase64 = null)
   try {
     const userRef = ref(rtdb, `${COLLECTION}/${uid}`);
     
-    const updateData = {
+    const updateData = sanitizeForRTDB({
       certificationStatus: status,
-      certificationRequestedAt: status === 'pending' ? serverTimestamp() : undefined,
-      certificationVerifiedAt: status === 'verified' ? serverTimestamp() : undefined,
-    };
-
-    // Store photo reference if provided (note: for large files, consider Firebase Storage)
-    if (photoBase64 && status === 'pending') {
-      updateData.certificationPhotoProvided = true;
-    }
+      ...(status === 'pending' ? { certificationRequestedAt: new Date().toISOString() } : {}),
+      ...(status === 'verified' ? { certificationVerifiedAt: new Date().toISOString() } : {}),
+      ...(photoBase64 && status === 'pending' ? { certificationPhotoProvided: true } : {})
+    });
 
     await update(userRef, updateData);
     
     return { success: true, message: `Certification status updated to ${status}` };
   } catch (error) {
+    console.error('[updateCertificationStatus] Error:', error.message);
     return { success: false, error: error.message };
   }
 };

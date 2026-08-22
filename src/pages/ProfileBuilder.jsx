@@ -14,6 +14,10 @@ const STEPS = [
   'Preferences'
 ];
 
+// Helper to toggle a value in an array
+const toggleInArray = (arr, val) =>
+  arr.includes(val) ? arr.filter(v => v !== val) : [...arr, val];
+
 export default function ProfileBuilder() {
   const navigate = useNavigate();
   const { user, isAuthenticated, refreshProfile, userProfile, loading } = useAuth();
@@ -22,14 +26,59 @@ export default function ProfileBuilder() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
 
+  // ── Step 1: Personal Info ──────────────────────────────────────
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [state, setState] = useState('');
+  const [city, setCity] = useState('');
+  const [resumeLink, setResumeLink] = useState('');
+
+  // ── Step 2: Disability & Needs ─────────────────────────────────
+  const [disabilityType, setDisabilityType] = useState([]);
+  const [assistiveTech, setAssistiveTech] = useState([]);
+  const [primaryComm, setPrimaryComm] = useState('');
+  const [interviewPrefs, setInterviewPrefs] = useState([]);
+  const [contactPrefs, setContactPrefs] = useState([]);
+  const [accommodations, setAccommodations] = useState([]);
+
+  // ── Step 3: Experience ─────────────────────────────────────────
   const [skills, setSkills] = useState([]);
   const [skillInput, setSkillInput] = useState('');
+  const [experienceLevel, setExperienceLevel] = useState('');
+  const [industries, setIndustries] = useState([]);
 
+  // ── Step 4: Preferences ────────────────────────────────────────
+  const [workMode, setWorkMode] = useState('');
+  const [salaryMin, setSalaryMin] = useState('');
+  const [salaryMax, setSalaryMax] = useState('');
+  const [availableFrom, setAvailableFrom] = useState('');
+  const [openToRelocation, setOpenToRelocation] = useState(true);
+
+  // Pre-fill from existing profile
   useEffect(() => {
-    if (userProfile?.skills) {
-      setSkills(userProfile.skills);
-    }
-  }, [userProfile]);
+    if (!userProfile) return;
+    setFullName(userProfile.name || user?.displayName || '');
+    setEmail(userProfile.email || user?.email || '');
+    setPhone(userProfile.phone || '');
+    setState(userProfile.state || '');
+    setCity(userProfile.city || '');
+    setResumeLink(userProfile.resumeLink || '');
+    setDisabilityType(userProfile.disabilityType || []);
+    setAssistiveTech(userProfile.assistiveTech || []);
+    setPrimaryComm(userProfile.primaryComm || '');
+    setInterviewPrefs(userProfile.interviewPrefs || []);
+    setContactPrefs(userProfile.contactPrefs || []);
+    setAccommodations(userProfile.accommodations || []);
+    setSkills(userProfile.skills || []);
+    setExperienceLevel(userProfile.experienceLevel || '');
+    setIndustries(userProfile.industries || []);
+    setWorkMode(userProfile.workPreference || '');
+    setSalaryMin(userProfile.salaryMin || '');
+    setSalaryMax(userProfile.salaryMax || '');
+    setAvailableFrom(userProfile.availableFrom || '');
+    setOpenToRelocation(userProfile.openToRelocation !== undefined ? userProfile.openToRelocation : true);
+  }, [userProfile, user]);
 
   const handleNext = () => {
     if (currentStep < 4) setCurrentStep(s => s + 1);
@@ -44,43 +93,49 @@ export default function ProfileBuilder() {
     setSaving(true);
     setSaveError('');
 
-    // Collect all form data from the DOM
-    const form = document.querySelector('form');
-    const formData = form ? new FormData(form) : new FormData();
-
     const profileData = {
-      name: document.getElementById('fullName')?.value || user?.displayName || '',
-      email: document.getElementById('email')?.value || user?.email || '',
-      phone: document.getElementById('phone')?.value || '',
-      state: document.getElementById('state')?.value || '',
-      city: document.getElementById('city')?.value || '',
-      disabilityType: formData.getAll('disabilityType'),
-      assistiveTech: formData.getAll('assistiveTech'),
-      accommodations: formData.getAll('accommodations'),
-      primaryComm: formData.get('primaryComm') || '',
-      interviewPrefs: formData.getAll('interviewPrefs'),
-      contactPrefs: formData.getAll('contactPrefs'),
-      skills,
-      experienceLevel: formData.get('expLevel') || '',
-      industries: formData.getAll('industries'),
-      workPreference: formData.get('workMode') || '',
-      salaryMin: document.getElementById('salaryMin')?.value || '',
-      salaryMax: document.getElementById('salaryMax')?.value || '',
-      resumeLink: document.getElementById('resumeLink')?.value || '',
-      availableFrom: document.getElementById('availableFrom')?.value || '',
-      openToRelocation: document.getElementById('openReloc')?.checked || false,
+      name: fullName || user?.displayName || '',
+      email: email || user?.email || '',
+      phone: phone || '',
+      state: state || '',
+      city: city || '',
+      resumeLink: resumeLink || '',
+      disabilityType: disabilityType || [],
+      assistiveTech: assistiveTech || [],
+      primaryComm: primaryComm || '',
+      interviewPrefs: interviewPrefs || [],
+      contactPrefs: contactPrefs || [],
+      accommodations: accommodations || [],
+      skills: skills || [],
+      experienceLevel: experienceLevel || '',
+      industries: industries || [],
+      workPreference: workMode || '',
+      salaryMin: salaryMin || '',
+      salaryMax: salaryMax || '',
+      availableFrom: availableFrom || '',
+      openToRelocation: openToRelocation,
+      profileCompletedAt: new Date().toISOString(),
       createdAt: new Date().toISOString()
     };
 
-    if (isAuthenticated && user) {
+    console.log('[ProfileBuilder] handleComplete fired');
+    console.log('[ProfileBuilder] user:', user?.uid, '| isAuthenticated:', isAuthenticated);
+    console.log('[ProfileBuilder] profileData to save:', profileData);
+
+    // user must exist (even if email not verified, we allow saving)
+    if (user) {
       const result = await saveCandidateProfile(user.uid, profileData);
+      console.log('[ProfileBuilder] saveCandidateProfile result:', result);
       if (!result.success) {
-        setSaveError(result.error || 'Failed to save profile.');
+        setSaveError(result.error || 'Failed to save profile. Check console for details.');
         setSaving(false);
         return;
       }
-      // Refresh context so the profile data is available across the app
       await refreshProfile();
+    } else {
+      setSaveError('You must be signed in to save your profile.');
+      setSaving(false);
+      return;
     }
 
     setSaving(false);
@@ -243,6 +298,8 @@ export default function ProfileBuilder() {
       <div className="card" style={{ padding: '40px' }}>
         <form onSubmit={e => e.preventDefault()}>
           <AnimatePresence mode="wait">
+
+            {/* ── STEP 1: Personal Info ── */}
             {currentStep === 1 && (
               <motion.fieldset key="step1" variants={stepVariants} initial="initial" animate="animate" exit="exit">
                 <legend className="sr-only">Personal Information</legend>
@@ -251,28 +308,64 @@ export default function ProfileBuilder() {
                 <div style={{ display: 'grid', gap: '24px', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
                   <div style={{ gridColumn: '1 / -1' }}>
                     <label htmlFor="fullName">Full Name</label>
-                    <input id="fullName" type="text" required placeholder="Priya Sharma" autoComplete="name" defaultValue={userProfile?.name || user?.displayName || ''} />
+                    <input
+                      id="fullName" type="text" required
+                      placeholder="Priya Sharma" autoComplete="name"
+                      value={fullName}
+                      onChange={e => setFullName(e.target.value)}
+                    />
                   </div>
                   <div>
                     <label htmlFor="email">Email Address</label>
-                    <input id="email" type="email" required placeholder="priya@example.com" autoComplete="email" defaultValue={userProfile?.email || user?.email || ''} />
+                    <input
+                      id="email" type="email" required
+                      placeholder="priya@example.com" autoComplete="email"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                    />
                   </div>
                   <div>
                     <label htmlFor="phone">Phone Number</label>
-                    <input id="phone" type="tel" placeholder="+91 98765 43210" autoComplete="tel" defaultValue={userProfile?.phone || ''} />
+                    <input
+                      id="phone" type="tel"
+                      placeholder="+91 98765 43210" autoComplete="tel"
+                      value={phone}
+                      onChange={e => setPhone(e.target.value)}
+                    />
                   </div>
                   <div>
                     <label htmlFor="state">State</label>
-                    <select id="state" required autoComplete="address-level1" defaultValue={userProfile?.state || ''}>
+                    <select
+                      id="state" required autoComplete="address-level1"
+                      value={state}
+                      onChange={e => setState(e.target.value)}
+                    >
                       <option value="">Select State...</option>
                       <option value="MH">Maharashtra</option>
                       <option value="KA">Karnataka</option>
                       <option value="DL">Delhi</option>
+                      <option value="TN">Tamil Nadu</option>
+                      <option value="UP">Uttar Pradesh</option>
+                      <option value="RJ">Rajasthan</option>
+                      <option value="GJ">Gujarat</option>
+                      <option value="WB">West Bengal</option>
+                      <option value="AP">Andhra Pradesh</option>
+                      <option value="TS">Telangana</option>
+                      <option value="KL">Kerala</option>
+                      <option value="HR">Haryana</option>
+                      <option value="MP">Madhya Pradesh</option>
+                      <option value="OD">Odisha</option>
+                      <option value="PB">Punjab</option>
                     </select>
                   </div>
                   <div>
                     <label htmlFor="city">City</label>
-                    <input id="city" type="text" required placeholder="Bangalore" autoComplete="address-level2" defaultValue={userProfile?.city || ''} />
+                    <input
+                      id="city" type="text" required
+                      placeholder="Bangalore" autoComplete="address-level2"
+                      value={city}
+                      onChange={e => setCity(e.target.value)}
+                    />
                   </div>
                   <div style={{ gridColumn: '1 / -1', marginTop: '16px' }}>
                     <label htmlFor="profilePhoto">Profile Photo (Optional)</label>
@@ -292,19 +385,21 @@ export default function ProfileBuilder() {
                 <div style={{ marginTop: '32px' }}>
                   <label htmlFor="resumeLink">Resume Link (Google Drive / LinkedIn / Portfolio)</label>
                   <p id="resumeLinkHelp" style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                    Paste a link to your resume for quick applications. This will minimize friction when applying to jobs.
+                    Paste a link to your resume for quick applications.
                   </p>
                   <input 
                     id="resumeLink" 
                     type="url" 
                     placeholder="https://drive.google.com/..." 
                     aria-describedby="resumeLinkHelp"
-                    defaultValue={userProfile?.resumeLink || ''}
+                    value={resumeLink}
+                    onChange={e => setResumeLink(e.target.value)}
                   />
                 </div>
               </motion.fieldset>
             )}
 
+            {/* ── STEP 2: Disability & Needs ── */}
             {currentStep === 2 && (
               <motion.fieldset key="step2" variants={stepVariants} initial="initial" animate="animate" exit="exit">
                 <legend className="sr-only">Disability & Accessibility Needs</legend>
@@ -314,8 +409,12 @@ export default function ProfileBuilder() {
                   <legend style={{ marginBottom: '16px', fontSize: '1.1rem' }}>Disability Type</legend>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
                     {['Visual Impairment', 'Hearing Impairment', 'Mobility/Physical', 'Cognitive/Learning', 'Speech/Language', 'Autism Spectrum', 'Multiple Disabilities', 'Prefer not to say'].map((type) => (
-                      <label key={type} className="glass" style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: '500', margin: 0, padding: '12px 16px', borderRadius: '12px', background: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
-                        <input type="checkbox" name="disabilityType" value={type} />
+                      <label key={type} className="glass" style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: '500', margin: 0, padding: '12px 16px', borderRadius: '12px', background: disabilityType.includes(type) ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.4)', cursor: 'pointer', border: disabilityType.includes(type) ? '1.5px solid var(--accent-purple)' : '1.5px solid transparent' }}>
+                        <input
+                          type="checkbox"
+                          checked={disabilityType.includes(type)}
+                          onChange={() => setDisabilityType(toggleInArray(disabilityType, type))}
+                        />
                         {type}
                       </label>
                     ))}
@@ -326,30 +425,40 @@ export default function ProfileBuilder() {
                   <legend style={{ marginBottom: '16px', fontSize: '1.1rem' }}>Assistive Technology You Use</legend>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
                     {['Screen reader (JAWS)', 'Screen reader (NVDA)', 'Screen reader (VoiceOver)', 'Braille display', 'Switch access', 'Voice control', 'Magnification software', 'Hearing aids', 'Cochlear implants', 'FM/loop system', 'Video relay service (VRS)', 'None currently'].map((type) => (
-                      <label key={type} className="glass" style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: '500', margin: 0, padding: '12px 16px', borderRadius: '12px', background: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
-                        <input type="checkbox" name="assistiveTech" value={type} />
+                      <label key={type} className="glass" style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: '500', margin: 0, padding: '12px 16px', borderRadius: '12px', background: assistiveTech.includes(type) ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.4)', cursor: 'pointer', border: assistiveTech.includes(type) ? '1.5px solid var(--accent-purple)' : '1.5px solid transparent' }}>
+                        <input
+                          type="checkbox"
+                          checked={assistiveTech.includes(type)}
+                          onChange={() => setAssistiveTech(toggleInArray(assistiveTech, type))}
+                        />
                         {type}
                       </label>
                     ))}
                   </div>
                 </fieldset>
 
-                {/* NEW: Deaf/HoH Communication Preferences Section */}
+                {/* Deaf/HoH Communication Preferences */}
                 <div className="communication-prefs-section" style={{ marginBottom: '40px' }}>
                   <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', fontSize: '1.25rem' }}>
                     <span role="img" aria-label="Sign language">🤟</span>
                     Deaf/HoH Communication Preferences
                   </h3>
                   <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '0.95rem' }}>
-                    Help employers understand your preferred communication methods. This information is optional and helps match you with inclusive workplaces.
+                    Help employers understand your preferred communication methods.
                   </p>
                   
                   <fieldset style={{ marginBottom: '24px' }}>
                     <legend style={{ marginBottom: '12px', fontSize: '1rem', fontWeight: '600' }}>Primary Communication Method</legend>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                       {['Spoken language', 'British Sign Language (BSL)', 'American Sign Language (ASL)', 'Indian Sign Language (ISL)', 'Lip reading', 'Written/Text only', 'Combination'].map((method) => (
-                        <label key={method} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: 'rgba(255,255,255,0.6)', borderRadius: '20px', cursor: 'pointer', fontWeight: '500' }}>
-                          <input type="radio" name="primaryComm" value={method} />
+                        <label key={method} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: primaryComm === method ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.6)', borderRadius: '20px', cursor: 'pointer', fontWeight: '500', border: primaryComm === method ? '1.5px solid var(--accent-purple)' : '1.5px solid transparent' }}>
+                          <input
+                            type="radio"
+                            name="primaryComm"
+                            value={method}
+                            checked={primaryComm === method}
+                            onChange={() => setPrimaryComm(method)}
+                          />
                           {method}
                         </label>
                       ))}
@@ -369,8 +478,12 @@ export default function ProfileBuilder() {
                         'In-person with loop system',
                         'Asynchronous video responses'
                       ].map((pref) => (
-                        <label key={pref} className="glass" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '12px', cursor: 'pointer', fontWeight: '500' }}>
-                          <input type="checkbox" name="interviewPrefs" value={pref} />
+                        <label key={pref} className="glass" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '12px', cursor: 'pointer', fontWeight: '500', background: interviewPrefs.includes(pref) ? 'rgba(139,92,246,0.12)' : undefined, border: interviewPrefs.includes(pref) ? '1.5px solid var(--accent-purple)' : '1.5px solid transparent' }}>
+                          <input
+                            type="checkbox"
+                            checked={interviewPrefs.includes(pref)}
+                            onChange={() => setInterviewPrefs(toggleInArray(interviewPrefs, pref))}
+                          />
                           {pref}
                         </label>
                       ))}
@@ -388,8 +501,12 @@ export default function ProfileBuilder() {
                         { label: 'WhatsApp', icon: '📱' },
                         { label: 'No phone calls', icon: '🚫' }
                       ].map(({ label, icon }) => (
-                        <label key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: 'rgba(255,255,255,0.6)', borderRadius: '20px', cursor: 'pointer', fontWeight: '500' }}>
-                          <input type="checkbox" name="contactPrefs" value={label} />
+                        <label key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: contactPrefs.includes(label) ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.6)', borderRadius: '20px', cursor: 'pointer', fontWeight: '500', border: contactPrefs.includes(label) ? '1.5px solid var(--accent-purple)' : '1.5px solid transparent' }}>
+                          <input
+                            type="checkbox"
+                            checked={contactPrefs.includes(label)}
+                            onChange={() => setContactPrefs(toggleInArray(contactPrefs, label))}
+                          />
                           <span role="img" aria-hidden="true">{icon}</span> {label}
                         </label>
                       ))}
@@ -401,8 +518,12 @@ export default function ProfileBuilder() {
                   <legend style={{ marginBottom: '16px', fontSize: '1.1rem' }}>Workplace Accommodations Needed</legend>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
                     {['Remote work', 'Flexible hours', 'Accessible office', 'Sign language interpreter', 'Large print materials', 'Text-to-speech software', 'Ergonomic equipment', 'Quiet workspace', 'Visual fire alarms', 'Induction/hearing loop', 'Video relay service', 'Real-time captioning (CART)', 'Deaf awareness trained team'].map((acc) => (
-                      <label key={acc} className="glass" style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: '500', margin: 0, padding: '12px 16px', borderRadius: '12px', background: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
-                        <input type="checkbox" name="accommodations" value={acc} />
+                      <label key={acc} className="glass" style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: '500', margin: 0, padding: '12px 16px', borderRadius: '12px', background: accommodations.includes(acc) ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.4)', cursor: 'pointer', border: accommodations.includes(acc) ? '1.5px solid var(--accent-purple)' : '1.5px solid transparent' }}>
+                        <input
+                          type="checkbox"
+                          checked={accommodations.includes(acc)}
+                          onChange={() => setAccommodations(toggleInArray(accommodations, acc))}
+                        />
                         {acc}
                       </label>
                     ))}
@@ -411,6 +532,7 @@ export default function ProfileBuilder() {
               </motion.fieldset>
             )}
 
+            {/* ── STEP 3: Experience ── */}
             {currentStep === 3 && (
               <motion.fieldset key="step3" variants={stepVariants} initial="initial" animate="animate" exit="exit">
                 <legend className="sr-only">Skills & Experience</legend>
@@ -453,8 +575,14 @@ export default function ProfileBuilder() {
                   <legend style={{ marginBottom: '16px', fontSize: '1.1rem' }}>Experience Level</legend>
                   <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
                     {['Entry', 'Mid', 'Senior', 'Lead'].map((level) => (
-                      <label key={level} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '600', margin: 0, padding: '12px 24px', borderRadius: '30px', border: '1px solid var(--border)', background: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
-                        <input type="radio" name="expLevel" value={level} required={currentStep === 3} />
+                      <label key={level} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '600', margin: 0, padding: '12px 24px', borderRadius: '30px', border: experienceLevel === level ? '2px solid var(--accent-purple)' : '1px solid var(--border)', background: experienceLevel === level ? 'rgba(139,92,246,0.1)' : 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
+                        <input
+                          type="radio"
+                          name="expLevel"
+                          value={level}
+                          checked={experienceLevel === level}
+                          onChange={() => setExperienceLevel(level)}
+                        />
                         {level}
                       </label>
                     ))}
@@ -465,8 +593,12 @@ export default function ProfileBuilder() {
                   <legend style={{ marginBottom: '16px', fontSize: '1.1rem' }}>Industries of Interest</legend>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
                     {['Technology', 'Finance', 'Healthcare', 'Education', 'Retail', 'Design', 'Customer Support', 'Marketing'].map((ind) => (
-                      <label key={ind} className="glass" style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: '500', margin: 0, padding: '12px 16px', borderRadius: '12px', cursor: 'pointer' }}>
-                        <input type="checkbox" name="industries" value={ind} />
+                      <label key={ind} className="glass" style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: '500', margin: 0, padding: '12px 16px', borderRadius: '12px', cursor: 'pointer', background: industries.includes(ind) ? 'rgba(139,92,246,0.12)' : undefined, border: industries.includes(ind) ? '1.5px solid var(--accent-purple)' : '1.5px solid transparent' }}>
+                        <input
+                          type="checkbox"
+                          checked={industries.includes(ind)}
+                          onChange={() => setIndustries(toggleInArray(industries, ind))}
+                        />
                         {ind}
                       </label>
                     ))}
@@ -489,6 +621,7 @@ export default function ProfileBuilder() {
               </motion.fieldset>
             )}
 
+            {/* ── STEP 4: Preferences ── */}
             {currentStep === 4 && (
               <motion.fieldset key="step4" variants={stepVariants} initial="initial" animate="animate" exit="exit">
                 <legend className="sr-only">Work Preferences</legend>
@@ -498,8 +631,14 @@ export default function ProfileBuilder() {
                   <legend style={{ marginBottom: '16px', fontSize: '1.1rem' }}>Work Mode Preference</legend>
                   <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
                     {['Remote', 'Hybrid', 'Onsite', 'Any'].map((mode) => (
-                      <label key={mode} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '600', margin: 0, padding: '12px 24px', borderRadius: '30px', border: '1px solid var(--border)', background: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
-                        <input type="radio" name="workMode" value={mode} required={currentStep === 4} />
+                      <label key={mode} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '600', margin: 0, padding: '12px 24px', borderRadius: '30px', border: workMode === mode ? '2px solid var(--accent-purple)' : '1px solid var(--border)', background: workMode === mode ? 'rgba(139,92,246,0.1)' : 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
+                        <input
+                          type="radio"
+                          name="workMode"
+                          value={mode}
+                          checked={workMode === mode}
+                          onChange={() => setWorkMode(mode)}
+                        />
                         {mode}
                       </label>
                     ))}
@@ -511,19 +650,33 @@ export default function ProfileBuilder() {
                   <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
                     <div style={{ flex: 1 }}>
                       <label htmlFor="salaryMin" className="sr-only">Minimum Salary</label>
-                      <input id="salaryMin" type="number" placeholder="Min (e.g. 500000)" />
+                      <input
+                        id="salaryMin" type="number"
+                        placeholder="Min (e.g. 500000)"
+                        value={salaryMin}
+                        onChange={e => setSalaryMin(e.target.value)}
+                      />
                     </div>
                     <span style={{ fontWeight: '600', color: 'var(--text-muted)' }}>to</span>
                     <div style={{ flex: 1 }}>
                       <label htmlFor="salaryMax" className="sr-only">Maximum Salary</label>
-                      <input id="salaryMax" type="number" placeholder="Max (e.g. 1200000)" />
+                      <input
+                        id="salaryMax" type="number"
+                        placeholder="Max (e.g. 1200000)"
+                        value={salaryMax}
+                        onChange={e => setSalaryMax(e.target.value)}
+                      />
                     </div>
                   </div>
                 </fieldset>
 
                 <div style={{ marginBottom: '32px' }}>
                   <label htmlFor="availableFrom">Available From</label>
-                  <input id="availableFrom" type="date" />
+                  <input
+                    id="availableFrom" type="date"
+                    value={availableFrom}
+                    onChange={e => setAvailableFrom(e.target.value)}
+                  />
                 </div>
 
                 <div className="glass" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px', borderRadius: '16px' }}>
@@ -532,7 +685,11 @@ export default function ProfileBuilder() {
                     <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)', marginTop: '4px' }}>Employers outside your state can match with you.</p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <input id="openReloc" type="checkbox" role="switch" defaultChecked />
+                    <input
+                      id="openReloc" type="checkbox" role="switch"
+                      checked={openToRelocation}
+                      onChange={e => setOpenToRelocation(e.target.checked)}
+                    />
                   </div>
                 </div>
 
@@ -550,12 +707,14 @@ export default function ProfileBuilder() {
             >
               Back
             </AccessibleButton>
-            <AccessibleButton type="button" onClick={handleNext} disabled={saving} style={{ opacity: saving ? 0.7 : 1 }}>
-              {saving ? 'Saving…' : currentStep === 4 ? 'Complete Profile' : 'Next Step'} <ChevronRight size={20} strokeWidth={3} />
-            </AccessibleButton>
-            {saveError && (
-              <div style={{ color: '#ef4444', fontSize: '0.9rem', marginTop: '12px', textAlign: 'center' }}>{saveError}</div>
-            )}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+              <AccessibleButton type="button" onClick={handleNext} disabled={saving} style={{ opacity: saving ? 0.7 : 1 }}>
+                {saving ? 'Saving…' : currentStep === 4 ? 'Complete Profile' : 'Next Step'} <ChevronRight size={20} strokeWidth={3} />
+              </AccessibleButton>
+              {saveError && (
+                <div style={{ color: '#ef4444', fontSize: '0.9rem' }}>{saveError}</div>
+              )}
+            </div>
           </div>
         </form>
       </div>
