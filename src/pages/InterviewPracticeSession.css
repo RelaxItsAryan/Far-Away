@@ -479,7 +479,8 @@
 .session-panel-content { padding: 24px; }
 
 .session-video-panel,
-.session-text-panel {
+.session-text-panel,
+.session-isl-panel {
   display: flex;
   flex-direction: column;
   gap: 20px;
