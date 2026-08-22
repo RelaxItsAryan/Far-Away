@@ -4,11 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Briefcase, Trash2, PlusCircle, CheckCircle, Users, Crown } from 'lucide-react';
 import { AccessibleButton } from '../components/AccessibleButton';
 import { useAuth } from '../context/AuthContext';
-import { createJob, getJobsByEmployer, deleteJob } from '../firebase/jobs';
+import { createJob, getJobsByEmployer, deleteJob, getAllJobsRaw } from '../firebase/jobs';
+import { evaluateJobRisk } from '../utils/fakeJobDetector';
+import CompanyVerificationPage from './CompanyVerificationPage';
 
 export default function EmployerDashboard() {
   const navigate = useNavigate();
-  const { user, isAuthenticated, userProfile } = useAuth();
+  const { user, isAuthenticated, userProfile, refreshProfile } = useAuth();
 
   const [myJobs, setMyJobs] = useState([]);
   const [jobsLoading, setJobsLoading] = useState(true);
@@ -42,6 +44,17 @@ export default function EmployerDashboard() {
       setJobsLoading(false);
     });
   }, [user]);
+
+  // If authenticated but company verification is not complete, render verification screen
+  if (isAuthenticated && userProfile?.companyVerificationStatus !== 'verified') {
+    return (
+      <CompanyVerificationPage 
+        user={user} 
+        profile={userProfile} 
+        onRefresh={refreshProfile} 
+      />
+    );
+  }
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -84,9 +97,16 @@ export default function EmployerDashboard() {
       ? `₹${(+form.salaryMin/100000).toFixed(0)}L – ₹${(+form.salaryMax/100000).toFixed(0)}L`
       : form.salaryMin ? `From ₹${(+form.salaryMin/100000).toFixed(0)}L` : '';
 
-    const result = await createJob({
+    // Fetch all existing jobs to evaluate duplicates
+    let existingJobs = [];
+    const allJobsRes = await getAllJobsRaw();
+    if (allJobsRes.success) {
+      existingJobs = allJobsRes.data;
+    }
+
+    const jobPayload = {
       title: form.title,
-      company: form.company || userProfile?.name || user?.displayName || 'My Company',
+      company: form.company || userProfile?.companyName || userProfile?.name || user?.displayName || 'My Company',
       location: form.location,
       description: form.description,
       jobType: form.workMode.toLowerCase(),
@@ -97,11 +117,31 @@ export default function EmployerDashboard() {
       deafFriendly: checks.h1 || checks.h2 || checks.h3 || checks.h4 || checks.h5 || checks.h6,
       signLanguage: checks.h3,
       captioning: checks.h4,
-      employerName: userProfile?.name || user?.displayName || form.company
-    }, user.uid);
+      employerName: userProfile?.recruiterName || userProfile?.name || user?.displayName || form.company,
+      employerId: user.uid
+    };
+
+    // Evaluate job risk using the scoring algorithm
+    const evaluation = evaluateJobRisk(jobPayload, existingJobs);
+    jobPayload.status = evaluation.status;
+    jobPayload.riskScore = evaluation.riskScore;
+    jobPayload.riskLevel = evaluation.riskLevel;
+    jobPayload.riskReasons = evaluation.reasons;
+
+    if (evaluation.status === 'rejected') {
+      showToast('🔴 Job Rejected: Failed automatic safety and anti-scam checks.', 'error');
+      setSubmitting(false);
+      return;
+    }
+
+    const result = await createJob(jobPayload, user.uid);
 
     if (result.success) {
-      showToast('Job published! Candidates can now see it. 🎉', 'success');
+      if (evaluation.status === 'pending_admin') {
+        showToast('⚠️ Job flagged for Admin Review due to suspicious indicators. It will be published once approved.', 'info');
+      } else {
+        showToast('Job published! Candidates can now see it. 🎉', 'success');
+      }
       setForm({ title:'', company:'', location:'', workMode:'', salaryMin:'', salaryMax:'', skillsRequired:'', description:'' });
       setChecks({ p1:false,p2:false,p3:false,p4:false,d1:false,d2:false,d3:false,d4:false,s1:false,s2:false,s3:false,s4:false,h1:false,h2:false,h3:false,h4:false,h5:false,h6:false });
       const r2 = await getJobsByEmployer(user.uid);

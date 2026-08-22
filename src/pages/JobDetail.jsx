@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { Briefcase, MapPin, DollarSign, Clock, ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
+import { Briefcase, MapPin, DollarSign, Clock, ArrowLeft, CheckCircle, Loader2, Flag, X } from 'lucide-react';
 import { AccessibleButton } from '../components/AccessibleButton';
-import { getJobById, applyToJob } from '../firebase/jobs';
+import { getJobById, applyToJob, reportJob } from '../firebase/jobs';
 import { useAuth } from '../context/AuthContext';
 
 export default function JobDetail() {
@@ -18,6 +18,11 @@ export default function JobDetail() {
   const [applied, setApplied] = useState(false);
   const [saved, setSaved] = useState(false);
   const [toast, setToast] = useState(null); // { msg, type }
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDetail, setReportDetail] = useState('');
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [reportDone, setReportDone] = useState(false);
 
   useEffect(() => {
     getJobById(id).then((r) => {
@@ -73,6 +78,21 @@ export default function JobDetail() {
       showToast(result.error || 'Failed to apply. Please try again.', 'error');
     }
     setApplying(false);
+  };
+
+  const handleReportJob = async () => {
+    if (!isAuthenticated) { navigate('/auth'); return; }
+    if (!reportReason) { showToast('Please select a reason.', 'error'); return; }
+    setReportSubmitting(true);
+    const result = await reportJob(id, user.uid, reportReason, reportDetail);
+    if (result.success) {
+      setReportDone(true);
+      setTimeout(() => { setShowReportModal(false); setReportDone(false); setReportReason(''); setReportDetail(''); }, 2000);
+      showToast('Report submitted. Our team will review it. 🛡️', 'success');
+    } else {
+      showToast(result.error || 'Failed to submit report.', 'error');
+    }
+    setReportSubmitting(false);
   };
 
   const featureLabel = (f) =>
@@ -324,9 +344,91 @@ export default function JobDetail() {
             >
               {saved ? '✓ Saved' : 'Save Job'}
             </AccessibleButton>
+
+            <button
+              id="report-job-btn"
+              onClick={() => setShowReportModal(true)}
+              style={{ width: '100%', marginTop: '10px', padding: '10px', borderRadius: '10px', border: '1.5px solid #fca5a5', background: 'rgba(239,68,68,0.05)', color: '#dc2626', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'background 0.2s' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.12)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.05)'}
+            >
+              <Flag size={14} /> Report this Job
+            </button>
           </div>
         </motion.div>
       </div>
+
+      {/* Report Job Modal */}
+      <AnimatePresence>
+        {showReportModal && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(9,20,38,0.65)', backdropFilter: 'blur(6px)', zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
+            onClick={(e) => { if (e.target === e.currentTarget) setShowReportModal(false); }}
+          >
+            <motion.div
+              initial={{ scale: 0.92, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.92, y: 20 }}
+              style={{ background: 'white', borderRadius: '20px', padding: '32px', maxWidth: '480px', width: '100%', position: 'relative' }}
+            >
+              <button onClick={() => setShowReportModal(false)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}>
+                <X size={20} />
+              </button>
+
+              {reportDone ? (
+                <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                  <CheckCircle size={48} style={{ color: 'var(--success)', marginBottom: '16px' }} />
+                  <h3 style={{ margin: 0, fontSize: '1.3rem' }}>Report Submitted!</h3>
+                  <p style={{ color: '#6b7280', marginTop: '8px' }}>Our team will review this listing.</p>
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(239,68,68,0.1)', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Flag size={20} />
+                    </div>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800 }}>Report Suspicious Job</h3>
+                      <p style={{ margin: 0, fontSize: '0.82rem', color: '#6b7280' }}>Help keep the platform safe. Select why this job seems fake.</p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                    {[
+                      'Asking for money or registration fee',
+                      'Unrealistic salary or benefits',
+                      'Suspicious contact info or links',
+                      'Fake or non-existent company',
+                      'Spam or misleading content',
+                      'Other scam indicators'
+                    ].map(reason => (
+                      <label key={reason} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderRadius: '10px', border: `1.5px solid ${reportReason === reason ? '#dc2626' : '#e5e7eb'}`, background: reportReason === reason ? 'rgba(239,68,68,0.06)' : 'white', cursor: 'pointer', fontSize: '0.88rem', fontWeight: 600, transition: 'all 0.15s' }}>
+                        <input type="radio" name="reportReason" value={reason} checked={reportReason === reason} onChange={() => setReportReason(reason)} style={{ accentColor: '#dc2626' }} />
+                        {reason}
+                      </label>
+                    ))}
+                  </div>
+
+                  <textarea
+                    value={reportDetail}
+                    onChange={e => setReportDetail(e.target.value)}
+                    placeholder="Add more detail (optional)..."
+                    rows={3}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1.5px solid #e5e7eb', fontSize: '0.88rem', resize: 'none', outline: 'none', boxSizing: 'border-box', marginBottom: '16px' }}
+                  />
+
+                  <AccessibleButton
+                    onClick={handleReportJob}
+                    disabled={reportSubmitting || !reportReason}
+                    style={{ width: '100%', minHeight: '44px', background: '#dc2626', fontSize: '0.92rem' }}
+                  >
+                    {reportSubmitting ? 'Submitting...' : 'Submit Report'}
+                  </AccessibleButton>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Toast */}
       <AnimatePresence>

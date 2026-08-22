@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, MessageCircle, LogOut, Crown, Moon, Sun, Home, Briefcase, Target, FileText, Zap, User, Settings, Accessibility } from 'lucide-react';
+import { Menu, X, MessageCircle, LogOut, Crown, Moon, Sun, Home, Briefcase, Target, FileText, Zap, User, Settings, Accessibility, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import LandingHero from './pages/LandingHero';
 import ProfileBuilder from './pages/ProfileBuilder';
@@ -23,6 +23,7 @@ import AboutUs from './pages/AboutUs';
 import ResumeBuilder from './pages/ResumeBuilder';
 import UserProfile from './pages/UserProfile';
 import MeetSync from './pages/MeetSync';
+import AdminDashboard from './pages/AdminDashboard';
 import { useAuth } from './context/AuthContext';
 const faviconImg = '/favicon.png';
 import CookieConsent from './components/CookieConsent';
@@ -248,6 +249,8 @@ const Header = () => {
 
           <AccessibleButton className="desktop-only" onClick={() => navigate('/employer')} aria-label="Post a new job listing" style={{ marginLeft: '8px' }}>Post a Job</AccessibleButton>
 
+
+
           <button
             ref={menuButtonRef}
             className="mobile-only"
@@ -365,6 +368,9 @@ const Header = () => {
 
                 <Link onClick={closeMobileMenu} to="/profile" style={mobileNavLinkStyle}>My Profile</Link>
                 <Link onClick={closeMobileMenu} to="/employer" style={mobileNavLinkStyle}>Employer Dashboard</Link>
+                <Link onClick={closeMobileMenu} to="/admin" style={{ ...mobileNavLinkStyle, color: 'var(--accent-purple)', fontWeight: 700 }}>
+                  <Shield size={14} style={{ display: 'inline', marginRight: '6px' }} />Admin Panel
+                </Link>
               </div>
 
               <div style={{ marginTop: '12px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
@@ -746,6 +752,12 @@ const AnimatedRoutes = () => {
         <Route path="/meetsync" element={
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
             <MeetSync />
+          </motion.div>
+        } />
+
+        <Route path="/admin" element={
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+            <AdminDashboard />
           </motion.div>
         } />
       </Routes>

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, CheckCircle, RefreshCw, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { registerUser, loginUser, resendVerificationEmail, signInWithGoogle, loginAsGuest } from '../firebase/auth';
+import { getCandidateProfile } from '../firebase/candidates';
 import { useAuth } from '../context/AuthContext';
 import interview from '../assets/interview.jpg';
 
@@ -194,10 +195,33 @@ const AuthPage = () => {
     }
   }, [searchParams]);
 
-  if (user && user.emailVerified) {
-    navigate(userType === 'employer' ? '/employer' : '/');
-    return null;
-  }
+  useEffect(() => {
+    const checkRedirect = async () => {
+      const isAuth = user && (user.emailVerified || user.email === 'guest@apnarozgaar.com' || user.isAnonymous);
+      if (isAuth) {
+        try {
+          const profileRes = await getCandidateProfile(user.uid);
+          const profileData = profileRes.success ? profileRes.data : null;
+          const isEmployer = (profileData?.userType === 'employer' || userType === 'employer');
+          
+          if (isEmployer) {
+            navigate('/employer');
+          } else {
+            const isVerified = profileData?.certificationStatus === 'verified';
+            if (isVerified) {
+              navigate('/');
+            } else {
+              navigate('/profile');
+            }
+          }
+        } catch (err) {
+          navigate(userType === 'employer' ? '/employer' : '/');
+        }
+      }
+    };
+    checkRedirect();
+  }, [user, userType, navigate]);
+
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
