@@ -1,42 +1,55 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, User, Building2, ArrowLeft, CheckCircle, RefreshCw, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, RefreshCw, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { registerUser, loginUser, resendVerificationEmail, signInWithGoogle } from '../firebase/auth';
 import { useAuth } from '../context/AuthContext';
+import interview from '../assets/interview.jpg';
 
-/* ─── Reusable Styles ─────────────────────────────────── */
-const inputStyle = {
+/* ─── Colour tokens (match Tailwind config) ──────────────── */
+const C = {
+  primary: '#091426',
+  secondary: '#006a61',
+  secondaryFixed: '#89f5e7',
+  surface: '#f8f9ff',
+  surfaceLowest: '#ffffff',
+  onSurface: '#0b1c30',
+  onSurfaceVar: '#45474c',
+  outlineVar: '#c5c6cd',
+  surfaceContainer: '#e5eeff',
+};
+
+/* ─── Shared input style ──────────────────────────────────── */
+const inp = (focus) => ({
   width: '100%',
-  padding: '14px 16px 14px 48px',
-  fontSize: '1rem',
-  border: '2px solid var(--border)',
-  borderRadius: '12px',
-  background: 'var(--bg-primary)',
-  color: 'var(--text-primary)',
+  height: '48px',
+  padding: '0 16px',
+  borderRadius: '8px',
+  border: `1px solid ${focus ? C.secondary : C.outlineVar}`,
+  background: C.surface,
+  color: C.onSurface,
   outline: 'none',
-  transition: 'all 0.2s',
-  minHeight: '52px',
-  boxSizing: 'border-box'
+  fontSize: '14px',
+  boxSizing: 'border-box',
+  transition: 'border-color 0.2s',
+  boxShadow: focus ? `0 0 0 2px rgba(0,106,97,0.15)` : 'none',
+});
+
+/* ─── Focusable Input ─────────────────────────────────────── */
+const FocusInput = ({ id, name, type = 'text', placeholder, value, onChange, required, style = {} }) => {
+  const [focused, setFocused] = useState(false);
+  return (
+    <input
+      id={id} name={name} type={type} placeholder={placeholder}
+      value={value} onChange={onChange} required={required}
+      style={{ ...inp(focused), ...style }}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+    />
+  );
 };
 
-const labelStyle = {
-  display: 'block',
-  marginBottom: '8px',
-  fontWeight: '600',
-  color: 'var(--text-primary)',
-  fontSize: '0.95rem'
-};
-
-const iconStyle = {
-  position: 'absolute',
-  left: '16px',
-  top: '50%',
-  transform: 'translateY(-50%)',
-  color: 'var(--text-muted)'
-};
-
-/* ─── Email Verification Pending Screen ───────────────── */
+/* ─── Email Verification Pending Screen ───────────────────── */
 const VerificationPending = ({ email, password, onBack }) => {
   const [resending, setResending] = useState(false);
   const [resendMsg, setResendMsg] = useState('');
@@ -52,17 +65,10 @@ const VerificationPending = ({ email, password, onBack }) => {
 
   const handleResend = async () => {
     if (cooldown > 0) return;
-    setResending(true);
-    setResendMsg('');
-    setResendError('');
-
+    setResending(true); setResendMsg(''); setResendError('');
     const result = await resendVerificationEmail(email, password);
-    if (result.success) {
-      setResendMsg(result.message);
-      setCooldown(60);
-    } else {
-      setResendError(result.error || 'Failed to resend. Please try again.');
-    }
+    if (result.success) { setResendMsg(result.message); setCooldown(60); }
+    else { setResendError(result.error || 'Failed to resend. Please try again.'); }
     setResending(false);
   };
 
@@ -75,64 +81,45 @@ const VerificationPending = ({ email, password, onBack }) => {
       transition={{ duration: 0.35 }}
       style={{ textAlign: 'center' }}
     >
-      {/* Animated envelope icon */}
       <motion.div
         initial={{ y: -10 }}
         animate={{ y: [0, -8, 0] }}
         transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
         style={{
-          width: '80px',
-          height: '80px',
-          borderRadius: '50%',
-          background: 'var(--bg-secondary)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          width: '80px', height: '80px', borderRadius: '50%',
+          background: 'rgba(0,106,97,0.1)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
           margin: '0 auto 24px',
-          border: '2px solid var(--border)',
-          boxShadow: 'var(--card-shadow)'
+          border: `2px solid ${C.outlineVar}`,
         }}
       >
-        <Mail size={36} color="var(--accent-purple)" />
+        <span className="material-symbols-outlined" style={{ fontSize: '36px', color: C.secondary }}>mark_email_read</span>
       </motion.div>
 
-      <h1 style={{ fontSize: '1.8rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '12px' }}>
-        Check Your Email ✉️
-      </h1>
-      <p style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: '1.65', marginBottom: '8px' }}>
+      <h2 style={{ fontSize: '1.6rem', fontWeight: 700, color: C.onSurface, marginBottom: '12px' }}>Check Your Email ✉️</h2>
+      <p style={{ color: C.onSurfaceVar, fontSize: '0.95rem', lineHeight: 1.65, marginBottom: '8px' }}>
         We sent a verification link to:
       </p>
       <p style={{
-        fontWeight: '700',
-        color: 'var(--accent-purple)',
-        fontSize: '1.05rem',
-        marginBottom: '24px',
-        wordBreak: 'break-all',
-        padding: '10px 16px',
-        background: 'var(--bg-secondary)',
-        borderRadius: '10px',
-        border: '1px solid var(--border)'
+        fontWeight: 700, color: C.secondary, fontSize: '1rem',
+        marginBottom: '24px', wordBreak: 'break-all',
+        padding: '10px 16px', background: C.surfaceContainer,
+        borderRadius: '8px', border: `1px solid ${C.outlineVar}`
       }}>
         {email}
       </p>
 
       <div style={{
-        padding: '16px',
-        background: 'var(--bg-secondary)',
-        border: '1px solid var(--border)',
-        borderRadius: '12px',
-        marginBottom: '28px',
-        textAlign: 'left'
+        padding: '16px', background: C.surfaceContainer, border: `1px solid ${C.outlineVar}`,
+        borderRadius: '10px', marginBottom: '28px', textAlign: 'left'
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-          <CheckCircle size={20} color="var(--success)" style={{ flexShrink: 0, marginTop: '2px' }} />
+          <CheckCircle size={20} color={C.secondary} style={{ flexShrink: 0, marginTop: '2px' }} />
           <div>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: '600', marginBottom: '6px' }}>
-              Next steps:
-            </p>
-            <ol style={{ fontSize: '0.88rem', color: 'var(--text-muted)', margin: 0, paddingLeft: '18px', lineHeight: '1.8' }}>
-              <li>Open the email from Firebase / ApnaRozgaar</li>
-              <li>Click the <strong style={{ color: 'var(--text-primary)' }}>Verify Email</strong> button</li>
+            <p style={{ fontSize: '0.9rem', color: C.onSurface, fontWeight: 600, marginBottom: '6px' }}>Next steps:</p>
+            <ol style={{ fontSize: '0.88rem', color: C.onSurfaceVar, margin: 0, paddingLeft: '18px', lineHeight: '1.8' }}>
+              <li>Open the email from ApnaRozgaar</li>
+              <li>Click the <strong style={{ color: C.onSurface }}>Verify Email</strong> button</li>
               <li>Return here and sign in</li>
             </ol>
           </div>
@@ -140,29 +127,12 @@ const VerificationPending = ({ email, password, onBack }) => {
       </div>
 
       {resendMsg && (
-        <div style={{
-          padding: '12px 16px',
-          background: 'rgba(5,150,105,0.1)',
-          border: '1px solid rgba(5,150,105,0.3)',
-          borderRadius: '8px',
-          color: 'var(--success)',
-          marginBottom: '16px',
-          fontSize: '0.9rem'
-        }}>
+        <div style={{ padding: '12px 16px', background: 'rgba(0,106,97,0.1)', border: `1px solid rgba(0,106,97,0.3)`, borderRadius: '8px', color: C.secondary, marginBottom: '16px', fontSize: '0.9rem' }}>
           ✅ {resendMsg}
         </div>
       )}
-
       {resendError && (
-        <div style={{
-          padding: '12px 16px',
-          background: 'rgba(239,68,68,0.1)',
-          border: '1px solid rgba(239,68,68,0.3)',
-          borderRadius: '8px',
-          color: '#ef4444',
-          marginBottom: '16px',
-          fontSize: '0.9rem'
-        }}>
+        <div style={{ padding: '12px 16px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', color: '#ef4444', marginBottom: '16px', fontSize: '0.9rem' }}>
           {resendError}
         </div>
       )}
@@ -171,22 +141,13 @@ const VerificationPending = ({ email, password, onBack }) => {
         onClick={handleResend}
         disabled={resending || cooldown > 0}
         style={{
-          width: '100%',
-          padding: '14px',
-          background: cooldown > 0 ? 'var(--bg-secondary)' : 'var(--bg-primary)',
-          border: '2px solid var(--border)',
-          borderRadius: '12px',
-          color: 'var(--text-primary)',
-          fontWeight: '600',
-          fontSize: '0.95rem',
+          width: '100%', padding: '14px', background: C.surfaceLowest,
+          border: `1px solid ${C.outlineVar}`, borderRadius: '8px',
+          color: C.onSurface, fontWeight: 600, fontSize: '0.9rem',
           cursor: cooldown > 0 || resending ? 'not-allowed' : 'pointer',
           opacity: cooldown > 0 || resending ? 0.6 : 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
-          transition: 'all 0.2s',
-          marginBottom: '16px'
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+          transition: 'all 0.2s', marginBottom: '16px'
         }}
       >
         <RefreshCw size={16} style={{ animation: resending ? 'spin 1s linear infinite' : 'none' }} />
@@ -195,26 +156,15 @@ const VerificationPending = ({ email, password, onBack }) => {
 
       <button
         onClick={onBack}
-        style={{
-          background: 'none',
-          border: 'none',
-          color: 'var(--text-muted)',
-          cursor: 'pointer',
-          fontSize: '0.9rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          margin: '0 auto'
-        }}
+        style={{ background: 'none', border: 'none', color: C.onSurfaceVar, cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', margin: '0 auto' }}
       >
-        <ArrowLeft size={16} />
-        Back to Sign In
+        <ArrowLeft size={16} /> Back to Sign In
       </button>
     </motion.div>
   );
 };
 
-/* ─── Main AuthPage ────────────────────────────────────── */
+/* ─── Main AuthPage ───────────────────────────────────────── */
 const AuthPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -229,16 +179,10 @@ const AuthPage = () => {
   const [needsVerification, setNeedsVerification] = useState(false);
   const [pendingEmail, setPendingEmail] = useState('');
   const [pendingPassword, setPendingPassword] = useState('');
-  const [needsVerificationLogin, setNeedsVerificationLogin] = useState(false); // unverified on login attempt
+  const [needsVerificationLogin, setNeedsVerificationLogin] = useState(false);
 
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
 
-  // If coming back from verification link
   useEffect(() => {
     if (searchParams.get('verified') === 'true') {
       setSuccess('🎉 Email verified! You can now sign in.');
@@ -246,7 +190,6 @@ const AuthPage = () => {
     }
   }, [searchParams]);
 
-  // Redirect if already authenticated
   if (user && user.emailVerified) {
     navigate(userType === 'employer' ? '/employer' : '/');
     return null;
@@ -257,23 +200,21 @@ const AuthPage = () => {
     setError('');
   };
 
+  const switchTab = (toLogin) => {
+    setIsLogin(toLogin);
+    setError(''); setSuccess('');
+    setNeedsVerificationLogin(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-    setSuccess('');
-    setNeedsVerificationLogin(false);
+    setLoading(true); setError(''); setSuccess(''); setNeedsVerificationLogin(false);
 
     if (!isLogin && formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match.');
-      setLoading(false);
-      return;
+      setError('Passwords do not match.'); setLoading(false); return;
     }
-
     if (!isLogin && formData.password.length < 6) {
-      setError('Password must be at least 6 characters.');
-      setLoading(false);
-      return;
+      setError('Password must be at least 6 characters.'); setLoading(false); return;
     }
 
     try {
@@ -283,10 +224,8 @@ const AuthPage = () => {
           setSuccess('Welcome back! Redirecting...');
           setTimeout(() => navigate('/'), 1200);
         } else if (result.needsVerification) {
-          // Show inline message + store creds for easy resend
           setNeedsVerificationLogin(true);
-          setPendingEmail(formData.email);
-          setPendingPassword(formData.password);
+          setPendingEmail(formData.email); setPendingPassword(formData.password);
           setError(result.error);
         } else {
           setError(result.error || 'Login failed. Please try again.');
@@ -295,8 +234,7 @@ const AuthPage = () => {
         const userData = { name: formData.name, email: formData.email };
         const result = await registerUser(formData.email, formData.password, userData, userType);
         if (result.success && result.needsVerification) {
-          setPendingEmail(formData.email);
-          setPendingPassword(formData.password);
+          setPendingEmail(formData.email); setPendingPassword(formData.password);
           setNeedsVerification(true);
         } else if (result.success) {
           setSuccess('Account created! Redirecting...');
@@ -305,18 +243,14 @@ const AuthPage = () => {
           setError(result.error || 'Registration failed. Please try again.');
         }
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred. Please try again.');
     }
-
     setLoading(false);
   };
 
   const handleGoogleSignIn = async () => {
-    setLoading(true);
-    setError('');
-    setSuccess('');
-    
+    setLoading(true); setError(''); setSuccess('');
     try {
       const result = await signInWithGoogle(userType);
       if (result.success) {
@@ -325,367 +259,393 @@ const AuthPage = () => {
       } else {
         setError(result.error || 'Google sign-in failed.');
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred.');
     } finally {
       setLoading(false);
     }
   };
 
+  /* ── Shared btn styles ── */
+  const primaryBtn = {
+    width: '100%', height: '48px',
+    background: C.secondary, color: '#fff',
+    border: 'none', borderRadius: '8px',
+    fontSize: '14px', fontWeight: 700,
+    cursor: loading ? 'not-allowed' : 'pointer',
+    opacity: loading ? 0.7 : 1,
+    transition: 'box-shadow 0.2s, transform 0.1s',
+    letterSpacing: '0.01em',
+  };
+
+  const socialBtn = {
+    flex: 1, height: '48px',
+    border: `1px solid ${C.outlineVar}`,
+    borderRadius: '8px', background: C.surfaceLowest,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    gap: '10px', cursor: 'pointer',
+    fontSize: '14px', fontWeight: 600, color: C.onSurface,
+    transition: 'background 0.2s',
+  };
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '24px',
-      background: 'var(--bg-primary)'
-    }}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="glass"
-        style={{
-          width: '100%',
-          maxWidth: '480px',
-          padding: '40px',
-          borderRadius: '24px',
-          boxShadow: 'var(--card-shadow)'
-        }}
+    <main style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
+
+      {/* ── Left: Hero Panel ── */}
+      <section style={{
+        display: 'none',
+        width: '50%',
+        position: 'relative',
+        background: C.primary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+      }}
+        className="auth-hero-panel"
       >
-        <AnimatePresence mode="wait">
-          {/* ── Verification Pending (after register) ── */}
-          {needsVerification ? (
-            <VerificationPending
-              key="verify-pending"
-              email={pendingEmail}
-              password={pendingPassword}
-              onBack={() => {
-                setNeedsVerification(false);
-                setIsLogin(true);
-                setFormData({ name: '', email: '', password: '', confirmPassword: '' });
-              }}
-            />
-          ) : (
-            /* ── Login / Register Form ── */
-            <motion.div
-              key="auth-form"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-            >
-              <button
-                onClick={() => navigate('/')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  cursor: 'pointer',
-                  marginBottom: '24px',
-                  fontSize: '0.95rem'
+        {/* Background image */}
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+          <img
+            src={interview}
+            alt="Professional Empowerment"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.95, filter: 'grayscale(30%)' }}
+          />
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: `linear-gradient(to top, ${C.primary}ee 0%, ${C.primary}44 50%, transparent 100%)`
+          }} />
+        </div>
+
+        {/* Branding top-left */}
+        <div style={{ position: 'absolute', top: '32px', left: '32px', zIndex: 20 }}>
+          <span style={{ fontSize: '2.25rem', fontWeight: 700, color: '#fff', letterSpacing: '-0.05em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            Welcome To ApnaRozgaar
+          </span>
+        </div>
+      </section>
+
+      {/* ── Right: Form Panel ── */}
+      <section style={{
+        width: '100%',
+        background: C.surfaceLowest,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '24px', overflowY: 'auto',
+      }}
+        className="auth-form-panel"
+      >
+        <div style={{ width: '100%', maxWidth: '448px' }}>
+
+          {/* Mobile branding */}
+          <div className="auth-mobile-brand" style={{ marginBottom: '32px', textAlign: 'center' }}>
+            <span style={{ fontSize: '1.25rem', fontWeight: 700, color: C.primary, letterSpacing: '-0.02em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              ApnaRozgaar
+            </span>
+          </div>
+
+          <AnimatePresence mode="wait">
+            {needsVerification ? (
+              <VerificationPending
+                key="verify-pending"
+                email={pendingEmail}
+                password={pendingPassword}
+                onBack={() => {
+                  setNeedsVerification(false);
+                  setIsLogin(true);
+                  setFormData({ name: '', email: '', password: '', confirmPassword: '' });
                 }}
-                aria-label="Go back to home"
+              />
+            ) : (
+              <motion.div
+                key="auth-form"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25 }}
               >
-                <ArrowLeft size={18} />
-                Back to Home
-              </button>
-
-              <h1 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '8px', color: 'var(--accent-purple)' }}>
-                {isLogin ? 'Welcome Back' : 'Create Account'}
-              </h1>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>
-                {isLogin
-                  ? 'Sign in to access your account'
-                  : 'Join our inclusive employment platform'}
-              </p>
-
-              {/* User Type Selector (register only) */}
-              {!isLogin && (
-                <div style={{ marginBottom: '24px' }}>
-                  <label style={labelStyle}>I am a:</label>
-                  <div style={{ display: 'flex', gap: '12px' }}>
-                    <button
-                      type="button"
-                      onClick={() => setUserType('candidate')}
-                      style={{
-                        flex: 1, padding: '14px', borderRadius: '12px',
-                        border: `2px solid ${userType === 'candidate' ? 'var(--accent-purple)' : 'var(--border)'}`,
-                        background: userType === 'candidate' ? 'var(--bg-primary)' : 'var(--bg-secondary)',
-                        color: 'var(--text-primary)',
-                        cursor: 'pointer', fontWeight: '600',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                        transition: 'all 0.2s'
-                      }}
-                      aria-pressed={userType === 'candidate'}
-                    >
-                      <User size={20} /> Job Seeker
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setUserType('employer')}
-                      style={{
-                        flex: 1, padding: '14px', borderRadius: '12px',
-                        border: `2px solid ${userType === 'employer' ? 'var(--accent-teal)' : 'var(--border)'}`,
-                        background: userType === 'employer' ? 'var(--bg-primary)' : 'var(--bg-secondary)',
-                        color: 'var(--text-primary)',
-                        cursor: 'pointer', fontWeight: '600',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                        transition: 'all 0.2s'
-                      }}
-                      aria-pressed={userType === 'employer'}
-                    >
-                      <Building2 size={20} /> Employer
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit}>
-                {/* Full Name (register only) */}
-                {!isLogin && (
-                  <div style={{ marginBottom: '20px' }}>
-                    <label htmlFor="name" style={labelStyle}>Full Name</label>
-                    <div style={{ position: 'relative' }}>
-                      <User size={20} style={iconStyle} />
-                      <input
-                        type="text" id="name" name="name"
-                        value={formData.name} onChange={handleChange}
-                        placeholder="Enter your full name"
-                        required={!isLogin}
-                        style={inputStyle}
-                        onFocus={e => e.target.style.borderColor = 'var(--accent-purple)'}
-                        onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Email */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label htmlFor="email" style={labelStyle}>Email Address</label>
-                  <div style={{ position: 'relative' }}>
-                    <Mail size={20} style={iconStyle} />
-                    <input
-                      type="email" id="email" name="email"
-                      value={formData.email} onChange={handleChange}
-                      placeholder="Enter your email"
-                      required
-                      style={inputStyle}
-                      onFocus={e => e.target.style.borderColor = 'var(--accent-purple)'}
-                      onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                    />
-                  </div>
+                {/* Header */}
+                <div style={{ marginBottom: '40px' }}>
+                  <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '1.5rem', fontWeight: 600, color: C.onSurface, marginBottom: '8px' }}>
+                    {isLogin ? 'Welcome Back' : 'Create Account'}
+                  </h2>
+                  <p style={{ fontSize: '14px', color: C.onSurfaceVar }}>
+                    Empowering professional journeys through clear communication.
+                  </p>
                 </div>
 
-                {/* Password */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label htmlFor="password" style={labelStyle}>Password</label>
-                  <div style={{ position: 'relative' }}>
-                    <Lock size={20} style={iconStyle} />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      id="password" name="password"
-                      value={formData.password} onChange={handleChange}
-                      placeholder="Enter your password"
-                      required
-                      style={{ ...inputStyle, paddingRight: '48px' }}
-                      onFocus={e => e.target.style.borderColor = 'var(--accent-purple)'}
-                      onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      style={{
-                        position: 'absolute', right: '12px', top: '50%',
-                        transform: 'translateY(-50%)', background: 'none', border: 'none',
-                        cursor: 'pointer', color: 'var(--text-muted)', padding: '8px'
-                      }}
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </button>
-                  </div>
+                {/* Tabs */}
+                <div style={{ display: 'flex', borderBottom: `1px solid ${C.outlineVar}`, marginBottom: '32px' }}>
+                  {['Login', 'Sign Up'].map((label, i) => {
+                    const active = i === 0 ? isLogin : !isLogin;
+                    return (
+                      <button
+                        key={label}
+                        onClick={() => switchTab(i === 0)}
+                        style={{
+                          flex: 1, padding: '12px 0',
+                          fontSize: '14px', fontWeight: active ? 700 : 600,
+                          color: active ? C.secondary : C.onSurfaceVar,
+                          background: 'none', border: 'none',
+                          borderBottom: active ? `2px solid ${C.secondary}` : '2px solid transparent',
+                          cursor: 'pointer', transition: 'color 0.2s',
+                          marginBottom: '-1px',
+                        }}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                {/* Confirm Password (register only) */}
-                {!isLogin && (
-                  <div style={{ marginBottom: '24px' }}>
-                    <label htmlFor="confirmPassword" style={labelStyle}>Confirm Password</label>
-                    <div style={{ position: 'relative' }}>
-                      <Lock size={20} style={iconStyle} />
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        id="confirmPassword" name="confirmPassword"
-                        value={formData.confirmPassword} onChange={handleChange}
-                        placeholder="Confirm your password"
-                        required={!isLogin}
-                        style={inputStyle}
-                        onFocus={e => e.target.style.borderColor = 'var(--accent-purple)'}
-                        onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                      />
-                    </div>
-                  </div>
-                )}
+                {/* Form */}
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-                {/* Error Alert */}
-                {error && (
-                  <div
-                    role="alert"
-                    style={{
-                      padding: '12px 16px',
-                      background: 'rgba(239,68,68,0.1)',
-                      border: '1px solid rgba(239,68,68,0.3)',
-                      borderRadius: '10px',
-                      color: '#ef4444',
-                      marginBottom: '16px',
-                      fontSize: '0.9rem',
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '10px'
-                    }}
-                  >
-                    <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '1px' }} />
+                  {/* User type (signup only) */}
+                  {!isLogin && (
                     <div>
-                      <span>{error}</span>
-                      {/* Offer resend if login blocked due to unverified email */}
-                      {needsVerificationLogin && (
-                        <button
-                          type="button"
-                          onClick={() => setNeedsVerification(true)}
-                          style={{
-                            display: 'block',
-                            marginTop: '8px',
-                            background: 'none',
-                            border: 'none',
-                            color: '#ef4444',
-                            textDecoration: 'underline',
-                            cursor: 'pointer',
-                            fontSize: '0.88rem',
-                            padding: 0
-                          }}
-                        >
-                          Resend verification email →
-                        </button>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: C.onSurfaceVar, marginBottom: '8px' }}>I am a:</label>
+                      <div style={{ display: 'flex', gap: '12px' }}>
+                        {[['candidate', 'person', 'Job Seeker'], ['employer', 'business_center', 'Employer']].map(([val, icon, label]) => (
+                          <button
+                            key={val} type="button"
+                            onClick={() => setUserType(val)}
+                            style={{
+                              flex: 1, padding: '12px',
+                              borderRadius: '8px',
+                              border: `1px solid ${userType === val ? C.secondary : C.outlineVar}`,
+                              background: userType === val ? 'rgba(0,106,97,0.06)' : C.surfaceLowest,
+                              color: userType === val ? C.secondary : C.onSurface,
+                              fontWeight: 600, fontSize: '13px',
+                              cursor: 'pointer',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                              transition: 'all 0.2s',
+                            }}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{icon}</span>
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Full Name (signup) */}
+                  {!isLogin && (
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: C.onSurfaceVar, marginBottom: '6px' }} htmlFor="signup-name">Full Name</label>
+                      <FocusInput id="signup-name" name="name" placeholder="John Doe" value={formData.name} onChange={handleChange} required={!isLogin} />
+                    </div>
+                  )}
+
+                  {/* Email */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: C.onSurfaceVar, marginBottom: '6px' }} htmlFor="auth-email">
+                      {isLogin ? 'Email or Username' : 'Email Address'}
+                    </label>
+                    <FocusInput id="auth-email" name="email" type="email" placeholder="name@example.com" value={formData.email} onChange={handleChange} required />
+                  </div>
+
+                  {/* Password */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label style={{ fontSize: '13px', fontWeight: 600, color: C.onSurfaceVar }} htmlFor="auth-password">Password</label>
+                      {isLogin && (
+                        <a href="#" style={{ fontSize: '13px', fontWeight: 600, color: C.secondary, textDecoration: 'none' }}>Forgot Password?</a>
                       )}
                     </div>
+                    <div style={{ position: 'relative' }}>
+                      <FocusInput
+                        id="auth-password" name="password"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder={isLogin ? '••••••••' : 'Min. 6 characters'}
+                        value={formData.password} onChange={handleChange} required
+                        style={{ paddingRight: '44px' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="pass-visible-btn"
+                        style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: C.onSurfaceVar, padding: '4px', display: 'flex' }}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
                   </div>
-                )}
 
-                {/* Success Alert */}
-                {success && (
-                  <div
-                    role="status"
-                    style={{
-                      padding: '12px 16px',
-                      background: 'rgba(5,150,105,0.1)',
-                      border: '1px solid rgba(5,150,105,0.3)',
-                      borderRadius: '10px',
-                      color: 'var(--success)',
-                      marginBottom: '16px',
-                      fontSize: '0.9rem'
-                    }}
+                  {/* Confirm Password (signup) */}
+                  {!isLogin && (
+                    <div>
+                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: C.onSurfaceVar, marginBottom: '6px' }} htmlFor="auth-confirm">Confirm Password</label>
+                      <FocusInput
+                        id="auth-confirm" name="confirmPassword"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Repeat your password"
+                        value={formData.confirmPassword} onChange={handleChange} required={!isLogin}
+                      />
+                    </div>
+                  )}
+
+                  {/* Remember me (login) */}
+                  {isLogin && (
+                    <label className="auth-label">
+                      <input type="checkbox" id="remember" className="auth-checkbox" style={{ accentColor: C.secondary, cursor: 'pointer' }} />
+                      <span style={{ fontSize: '14px', color: C.onSurfaceVar }}>Remember me</span>
+                    </label>
+                  )}
+
+                  {/* Terms (signup) */}
+                  {!isLogin && (
+                    <label className="auth-label" style={{ alignItems: 'flex-start' }}>
+                      <input type="checkbox" id="terms" required className="auth-checkbox" style={{ marginTop: '2px', accentColor: C.secondary, cursor: 'pointer', flexShrink: 0 }} />
+                      <span style={{ fontSize: '13px', color: C.onSurfaceVar, lineHeight: 1.5 }}>
+                        I agree to the{' '}
+                        <a href="#" style={{ color: C.secondary, textDecoration: 'none', fontWeight: 600 }}>Terms of Service</a>
+                        {' '}and{' '}
+                        <a href="#" style={{ color: C.secondary, textDecoration: 'none', fontWeight: 600 }}>Privacy Policy</a>.
+                      </span>
+                    </label>
+                  )}
+
+                  {/* Error */}
+                  {error && (
+                    <div role="alert" style={{ padding: '12px 16px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '8px', color: '#ef4444', fontSize: '13px', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                      <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '1px' }} />
+                      <div>
+                        <span>{error}</span>
+                        {needsVerificationLogin && (
+                          <button type="button" onClick={() => setNeedsVerification(true)}
+                            style={{ display: 'block', marginTop: '6px', background: 'none', border: 'none', color: '#ef4444', textDecoration: 'underline', cursor: 'pointer', fontSize: '12px', padding: 0 }}>
+                            Resend verification email →
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Success */}
+                  {success && (
+                    <div role="status" style={{ padding: '12px 16px', background: 'rgba(0,106,97,0.08)', border: `1px solid rgba(0,106,97,0.25)`, borderRadius: '8px', color: C.secondary, fontSize: '13px' }}>
+                      {success}
+                    </div>
+                  )}
+
+                  {/* Submit */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    style={primaryBtn}
+                    onMouseEnter={e => { if (!loading) e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,106,97,0.35)'; }}
+                    onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+                    onMouseDown={e => { if (!loading) e.currentTarget.style.transform = 'scale(0.98)'; }}
+                    onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
                   >
-                    {success}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  style={{
-                    width: '100%',
-                    padding: '16px',
-                    background: 'var(--primary-gradient)',
-                    color: 'white',
-                    border: '1px solid var(--border)',
-                    borderRadius: '12px',
-                    fontSize: '1.05rem',
-                    fontWeight: '600',
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    opacity: loading ? 0.7 : 1,
-                    transition: 'all 0.2s',
-                    minHeight: '52px'
-                  }}
-                >
-                  {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
-                </button>
+                    {loading ? 'Please wait…' : isLogin ? 'Login' : 'Create Account'}
+                  </button>
+                </form>
 
                 {/* Divider */}
-                <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0', gap: '12px' }}>
-                  <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600' }}>OR</span>
-                  <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', margin: '28px 0' }}>
+                  <div style={{ flex: 1, height: '1px', background: C.outlineVar }} />
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(69,71,76,0.55)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Or continue with</span>
+                  <div style={{ flex: 1, height: '1px', background: C.outlineVar }} />
                 </div>
 
-                {/* Google Sign In */}
-                <button
-                  type="button"
-                  onClick={handleGoogleSignIn}
-                  disabled={loading}
-                  style={{
-                    width: '100%',
-                    padding: '14px',
-                    background: 'var(--bg-primary)',
-                    color: 'var(--text-primary)',
-                    border: '2px solid var(--border)',
-                    borderRadius: '12px',
-                    fontSize: '1rem',
-                    fontWeight: '600',
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '12px',
-                    transition: 'all 0.2s',
-                    minHeight: '52px'
-                  }}
-                  onMouseEnter={e => { if (!loading) { e.currentTarget.style.background = 'var(--bg-secondary)'; e.currentTarget.style.borderColor = 'var(--accent-purple)'; } }}
-                  onMouseLeave={e => { if (!loading) { e.currentTarget.style.background = 'var(--bg-primary)'; e.currentTarget.style.borderColor = 'var(--border)'; } }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05" />
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                  </svg>
-                  {isLogin ? 'Sign in with Google' : 'Sign up with Google'}
-                </button>
-              </form>
+                {/* Social buttons */}
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <button
+                    onClick={handleGoogleSignIn}
+                    disabled={loading}
+                    style={{ ...socialBtn, opacity: loading ? 0.6 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
+                    onMouseEnter={e => { if (!loading) e.currentTarget.style.background = C.surfaceContainer; }}
+                    onMouseLeave={e => e.currentTarget.style.background = C.surfaceLowest}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05" />
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                    </svg>
+                    <span style={{ fontSize: '14px', fontWeight: 600 }}>Google</span>
+                  </button>
 
-              {/* Toggle between Login / Register */}
-              <div style={{ marginTop: '24px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                {isLogin ? "Don't have an account? " : 'Already have an account? '}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsLogin(!isLogin);
-                    setError('');
-                    setSuccess('');
-                    setNeedsVerificationLogin(false);
-                  }}
-                  style={{
-                    background: 'none', border: 'none',
-                    color: 'var(--accent-purple)', fontWeight: '600',
-                    cursor: 'pointer', textDecoration: 'underline'
-                  }}
-                >
-                  {isLogin ? 'Sign Up' : 'Sign In'}
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+                  <button
+                    style={{ ...socialBtn, cursor: 'not-allowed', opacity: 0.55 }}
+                    title="LinkedIn sign-in coming soon"
+                    disabled
+                  >
+                    <svg width="20" height="20" fill="#0A66C2" viewBox="0 0 24 24">
+                      <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+                    </svg>
+                    <span style={{ fontSize: '14px', fontWeight: 600 }}>LinkedIn</span>
+                  </button>
+                </div>
 
+                {/* Back to home */}
+                <button
+                  onClick={() => navigate('/')}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', color: C.onSurfaceVar, cursor: 'pointer', fontSize: '13px', margin: '24px auto 0' }}
+                >
+                  <ArrowLeft size={15} /> Back to Home
+                </button>
+
+                {/* Footer */}
+                <p style={{ marginTop: '32px', textAlign: 'center', fontSize: '12px', color: 'rgba(69,71,76,0.5)' }}>
+                  © 2026 ApnaRozgaar. Built for accessibility and dignity.
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </section>
+
+      {/* Scoped responsive CSS */}
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .auth-hero-panel { display: none !important; }
+        .auth-mobile-brand { display: block; }
+        
+        /* Overrides for checkbox elements stretched by global touch target CSS */
+        .auth-checkbox {
+          width: 20px !important;
+          height: 20px !important;
+          min-width: 20px !important;
+          min-height: 20px !important;
+          cursor: pointer;
+        }
+
+        /* Reset wrappers that match global accessibility label spacing */
+        .auth-label {
+          display: flex !important;
+          align-items: center !important;
+          gap: 10px !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          min-height: auto !important;
+          background: none !important;
+        }
+
+        /* Stripping button decoration from absolute visibility toggle */
+        .pass-visible-btn {
+          border: none !important;
+          background: none !important;
+          box-shadow: none !important;
+          min-width: auto !important;
+          min-height: auto !important;
+          width: 36px !important;
+          height: 36px !important;
+          padding: 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+
+        @media (min-width: 1024px) {
+          .auth-hero-panel { display: flex !important; }
+          .auth-form-panel { width: 50% !important; }
+          .auth-mobile-brand { display: none !important; }
+        }
       `}</style>
-    </div>
+    </main>
   );
 };
 

@@ -158,17 +158,12 @@ const Header = () => {
         boxShadow: scrolled ? '0 10px 40px -10px rgba(0,0,0,0.08)' : '0 4px 20px rgba(0,0,0,0.03)',
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
         maxWidth: '1400px',
-        margin: '0 auto'
+        margin: '0 auto',
+        gap: '12px'
       }}>
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
-          <div style={{
-            background: 'var(--bg-secondary)',
-            padding: '4px',
-            borderRadius: '50%',
-            boxShadow: '0 4px 12px var(--accent-purple-glow)',
-            display: 'flex'
-          }}>
-            <img src={faviconImg} alt="ApnaRozgaar logo" style={{ width: '28px', height: '28px', borderRadius: '50%' }} />
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', flexShrink: 0 }}>
+          <div className="brand-logo-badge" style={{ background: 'var(--bg-secondary)', boxShadow: '0 4px 12px var(--accent-purple-glow)' }}>
+            <img src={faviconImg} alt="ApnaRozgaar logo" />
           </div>
           <span style={{
             fontWeight: '800',
@@ -177,18 +172,17 @@ const Header = () => {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             fontFamily: "'Outfit', sans-serif",
-            letterSpacing: '-0.02em'
+            letterSpacing: '-0.02em',
+            whiteSpace: 'nowrap'
           }}>
             ApnaRozgaar
           </span>
         </Link>
 
-        <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end', flex: '1 1 auto' }}>
-
-
+        <div className="header-actions">
 
           <AccessibleButton variant="ghost" className="desktop-only nav-link-hover" onClick={() => navigate('/meetsync')} aria-label="Intelligent Meetings" style={{ position: 'relative' }}>
-            MeetSync
+
             <span style={{
               position: 'absolute',
               top: '-4px',
@@ -213,11 +207,11 @@ const Header = () => {
               <span className="desktop-only" style={{
                 color: 'var(--text-primary)',
                 fontWeight: '600',
-                display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 cursor: 'pointer',
-                padding: '0 12px'
+                padding: '0 12px',
+                whiteSpace: 'nowrap'
               }}
                 onClick={() => navigate('/profile')}
                 role="button"
@@ -257,7 +251,7 @@ const Header = () => {
             aria-controls="mobile-menu"
             aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            style={{ background: 'transparent', border: 'none', padding: '8px', cursor: 'pointer', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ background: 'transparent', border: 'none', padding: '8px', cursor: 'pointer', minWidth: '44px', minHeight: '44px', alignItems: 'center', justifyContent: 'center' }}
           >
             {mobileMenuOpen ? <X size={28} color="var(--text-primary)" aria-hidden="true" /> : <Menu size={28} color="var(--text-primary)" aria-hidden="true" />}
           </button>
@@ -462,6 +456,13 @@ const FocusModeOverlay = () => {
       return;
     }
 
+    // Site chrome (footer) should never be dimmed/blurred by focus mode —
+    // only the main reading content is meant to be spotlighted. Clamp the
+    // area the overlay is allowed to shade so it stops above the footer.
+    const footerEl = document.querySelector('footer');
+    const footerRect = footerEl ? footerEl.getBoundingClientRect() : null;
+    const shadeFloor = footerRect ? Math.max(0, footerRect.top) : viewportHeight;
+
     setSpotlightRect({
       top,
       left,
@@ -469,6 +470,7 @@ const FocusModeOverlay = () => {
       bottom,
       width,
       height,
+      shadeFloor,
       borderRadius: window.getComputedStyle(target).borderRadius || '24px',
     });
   }, []);
@@ -549,7 +551,10 @@ const FocusModeOverlay = () => {
       />
       <div
         className="focus-mode-overlay-shade focus-mode-overlay-shade-bottom"
-        style={{ top: `${spotlightRect.bottom}px` }}
+        style={{
+          top: `${spotlightRect.bottom}px`,
+          height: `${Math.max(0, spotlightRect.shadeFloor - spotlightRect.bottom)}px`,
+        }}
       />
       <div
         className="focus-mode-overlay-frame"
@@ -577,19 +582,13 @@ const Footer = () => (
     borderTop: '1px solid rgba(255,255,255,0.05)'
   }} role="contentinfo">
     <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-      <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '32px',
-        marginBottom: '32px',
-        justifyContent: 'space-between'
-      }}>
+      <div className="site-footer-grid">
         {/* Left Section */}
-        <div style={{ flex: '1 1 250px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ background: 'white', padding: '4px', borderRadius: '50%', display: 'inline-flex' }}>
-              <img src={faviconImg} alt="Apna Rozgaar logo" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+            <div className="brand-logo-badge" style={{ background: 'white' }}>
+              <img src={faviconImg} alt="Apna Rozgaar logo" />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <strong style={{ fontSize: '1.5rem', fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.02em', color: 'white', lineHeight: '1.1' }}>
@@ -611,13 +610,11 @@ const Footer = () => (
             <p style={{ color: '#ccc', margin: 0, fontSize: '0.85rem' }}>Like what we do & want to help?</p>
             <a href="/volunteer" style={{ color: '#D8B4FE', textDecoration: 'none', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', letterSpacing: '0.5px' }}>VOLUNTEER &rarr;</a>
           </div>
-
-
         </div>
 
         {/* Right Section (Links) */}
-        <div style={{ flex: '2 1 500px', display: 'flex', flexWrap: 'wrap', gap: '24px', justifyContent: 'space-between', paddingTop: '8px' }}>
-          <div style={{ flex: '1 1 120px' }}>
+        <div className="footer-links-grid">
+          <div>
             <h4 style={{ color: 'white', fontSize: '0.85rem', fontWeight: '700', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>FOR CANDIDATES</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <Link to="/jobs" style={{ color: '#ccc', textDecoration: 'none', fontSize: '0.8rem' }}>Employment Opportunities</Link>
@@ -627,27 +624,25 @@ const Footer = () => (
             </div>
           </div>
 
-          <div style={{ flex: '1 1 120px' }}>
+          <div>
             <h4 style={{ color: 'white', fontSize: '0.85rem', fontWeight: '700', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>FOR CORPORATES</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <Link to="/employer" style={{ color: '#ccc', textDecoration: 'none', fontSize: '0.8rem' }}>Hire Full Time & Interns</Link>
               <Link to="/employer" style={{ color: '#ccc', textDecoration: 'none', fontSize: '0.8rem' }}>Post a Job Listing</Link>
-
               <Link to="/contact" style={{ color: '#ccc', textDecoration: 'none', fontSize: '0.8rem' }}>Partner with Us</Link>
             </div>
           </div>
 
-          <div style={{ flex: '1 1 120px' }}>
+          <div>
             <h4 style={{ color: 'white', fontSize: '0.85rem', fontWeight: '700', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>RESOURCES</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <Link to="/about" style={{ color: '#ccc', textDecoration: 'none', fontSize: '0.8rem' }}>Our Story</Link>
-              {/* <Link to="/library" style={{ color: '#ccc', textDecoration: 'none', fontSize: '0.8rem' }}>AI Library</Link> */}
               <Link to="/blog" style={{ color: '#ccc', textDecoration: 'none', fontSize: '0.8rem' }}>Blog & Articles</Link>
               <Link to="/faq" style={{ color: '#ccc', textDecoration: 'none', fontSize: '0.8rem' }}>FAQs</Link>
             </div>
           </div>
 
-          <div style={{ flex: '1 1 120px' }}>
+          <div>
             <h4 style={{ color: 'white', fontSize: '0.85rem', fontWeight: '700', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>COMPANY</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <Link to="/about" style={{ color: '#ccc', textDecoration: 'none', fontSize: '0.8rem' }}>About Apna Rozgaar</Link>
@@ -659,14 +654,8 @@ const Footer = () => (
         </div>
       </div>
 
-
-
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '24px' }}>
-        <a href="#" style={{ color: '#ccc', transition: 'color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.color = 'white'} onMouseLeave={(e) => e.currentTarget.style.color = '#ccc'}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>
-        <a href="#" style={{ color: '#ccc', transition: 'color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.color = 'white'} onMouseLeave={(e) => e.currentTarget.style.color = '#ccc'}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></a>
-        <a href="#" style={{ color: '#ccc', transition: 'color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.color = 'white'} onMouseLeave={(e) => e.currentTarget.style.color = '#ccc'}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg></a>
-        <a href="#" style={{ color: '#ccc', transition: 'color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.color = 'white'} onMouseLeave={(e) => e.currentTarget.style.color = '#ccc'}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>
-        <a href="#" style={{ color: '#ccc', transition: 'color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.color = 'white'} onMouseLeave={(e) => e.currentTarget.style.color = '#ccc'}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg></a>
+      <div style={{ textAlign: 'center', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+        <p style={{ margin: 0, color: '#888', fontSize: '0.78rem' }}>&copy; {new Date().getFullYear()} Apna Rozgaar. All rights reserved.</p>
       </div>
     </div>
   </footer>
@@ -744,17 +733,16 @@ const AnimatedRoutes = () => {
     </AnimatePresence>
   );
 };
-
 const AppLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showSplash, setShowSplash] = useState(() => {
-    // Check if splash has already been shown in this session
     return !sessionStorage.getItem('splash-shown');
   });
   const isChatPage = location.pathname === '/chat';
   const isResumeBuilderPage = location.pathname === '/resume-builder';
   const isHomePage = location.pathname === '/';
+  const isAuthPage = location.pathname === '/auth';
 
   return (
     <>
@@ -769,28 +757,27 @@ const AppLayout = () => {
         )}
       </AnimatePresence>
 
-      {/* 1. Skip to main content link must be first in body/app */}
       <a href="#main-content" className="skip-link">Skip to main content</a>
 
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <Header />
+        {!isAuthPage && <Header />}
 
         <main
           id="main-content"
           data-focus-area="main-content"
           tabIndex="-1"
-          className={!isHomePage ? 'grain-bg' : ''}
-          style={{ flex: 1, paddingTop: isHomePage ? '0' : '100px' }}
+          className={(!isHomePage && !isAuthPage) ? 'grain-bg' : ''}
+          style={{ flex: 1, paddingTop: (isHomePage || isAuthPage) ? '0' : '100px' }}
           role="main"
         >
           <AnimatedRoutes />
         </main>
 
-        {!(isChatPage || isResumeBuilderPage) && <Footer />}
+        {!(isChatPage || isResumeBuilderPage || isAuthPage) && <Footer />}
       </div>
 
       {/* Chatbot quick launch button above voice control */}
-      {!isChatPage && (
+      {!(isChatPage || isAuthPage) && (
         <button
           type="button"
           onClick={() => navigate('/chat')}
@@ -811,24 +798,24 @@ const AppLayout = () => {
             alignItems: 'center',
             justifyContent: 'center',
             boxShadow: '0 8px 24px rgba(102, 126, 234, 0.3)',
-            zIndex: 9991, // Chatbot lowest
+            zIndex: 9991,
           }}
         >
           <MessageCircle size={24} />
         </button>
       )}
 
-      {/* Floating Screen Reader Button (Standalone) */}
-      <ScreenReader />
+      {/* Floating Screen Reader Button */}
+      {!isAuthPage && <ScreenReader />}
 
-      {/* Floating Voice Control Mic (Standalone) */}
-      <VoiceControl />
+      {/* Floating Voice Control Mic */}
+      {!isAuthPage && <VoiceControl />}
 
       {/* Unified Accessibility Menu */}
-      <AccessibilityMenu />
+      {!isAuthPage && <AccessibilityMenu />}
 
-      {/* Keyboard Shortcuts Help - Section 1.6 */}
-      <KeyboardShortcutsHelp />
+      {/* Keyboard Shortcuts Help */}
+      {!isAuthPage && <KeyboardShortcutsHelp />}
 
       {/* ADHD Focus Mode Spotlight */}
       <FocusModeOverlay />

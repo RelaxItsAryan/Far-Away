@@ -1,4 +1,4 @@
-# 🌟 ApnaRozgaar & MeetSync - AI-Powered Inclusive Ecosystem
+# 🌟 ApnaRozgaar - AI-Powered Inclusive Ecosystem
 
 <p align="center">
   <img src="public/favicon.png" alt="ApnaRozgaar Logo" width="160" height="160" style="border-radius: 20%;" />
@@ -33,7 +33,6 @@
 ## 📋 Table of Contents
 
 - [About](#-about)
-- [MeetSync AI](#-meetsync-ai-intelligence)
 - [Key Features](#-key-features)
 - [Accessibility Features](#-accessibility-features)
 - [Tech Stack](#️-tech-stack)
@@ -69,18 +68,6 @@
 
 ---
 
-## ⚡ MeetSync AI Intelligence
-
-**MeetSync** is our specialized video conferencing and collaboration hub, designed to be the "memory" for your professional interactions.
-
-### 🚀 MeetSync Features
-- **Llama 3.3 Analysis:** Automatically extracts promises, action items, and sentiment from every meeting.
-- **Hindsight Memory:** A global semantic search across all your past meetings. Ask "When did we discuss the accessibility audit?" and get the exact moment.
-- **Groq-Powered Whisper:** Near-instant, high-accuracy transcription for real-time accessibility (Captions/ASL support).
-- **Privacy First:** All audio is scrubbed post-analysis; only intelligence remains.
-
----
-
 ## ✨ Key Features
 
 ### 👤 For Job Seekers
@@ -102,7 +89,7 @@
 | **Inclusive Badges** | Silver/Gold/Platinum employer status |
 | **Deaf/HoH Support Tags** | Indicate sign language, CART, visual alarms availability |
 
-### 🤖 AI-Powered Features
+###  AI-Powered Features
 
 - **Asha Chatbot** - Powered by Google Gemini 2.5 Flash
 - Natural conversation about jobs, accommodations, platform help

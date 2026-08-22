@@ -676,26 +676,6 @@ const AccessibleChatbot = ({ isOpen: externalIsOpen, onOpenChange }) => {
                       {message.text}
 
                       {/* Speak button for bot messages */}
-                      {message.type === 'bot' && voiceEnabled && (
-                        <button
-                          onClick={() => speakText(message.text)}
-                          aria-label="Read this message aloud"
-                          style={{
-                            display: 'block',
-                            marginTop: '8px',
-                            padding: '4px 8px',
-                            background: 'rgba(124, 58, 237, 0.1)',
-                            border: '1px solid var(--accent-purple)',
-                            borderRadius: '12px',
-                            cursor: 'pointer',
-                            fontSize: '0.75rem',
-                            color: 'var(--accent-purple)',
-                            transition: 'all 0.2s'
-                          }}
-                        >
-                          🔊 Read aloud
-                        </button>
-                      )}
                     </div>
                   </div>
                 </motion.div>

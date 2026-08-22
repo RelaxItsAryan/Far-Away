@@ -224,7 +224,7 @@ class VoiceNavigator {
     utterance.pitch = 1;
     utterance.rate = 1;
     this.synthesis.speak(utterance);
-    this.showTranscript("🤖 " + text);
+    this.showTranscript(" " + text);
   }
 
   toggleListening() {

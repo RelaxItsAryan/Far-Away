@@ -187,29 +187,7 @@ export default function ScreenReader({ embedded = false }) {
           }}
         >
           {/* Text Label */}
-          <motion.div
-            initial={{ opacity: 0, x: 20, scale: 0.8 }}
-            animate={{
-              opacity: (isHovered || isReading) ? 1 : 0,
-              x: (isHovered || isReading) ? 0 : 20,
-              scale: (isHovered || isReading) ? 1 : 0.8
-            }}
-            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-            style={{
-              background: 'var(--card-bg)',
-              padding: '8px 14px',
-              borderRadius: '20px',
-              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.15)',
-              border: '1px solid var(--border-color)',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              color: 'var(--text-primary)',
-              whiteSpace: 'nowrap',
-              pointerEvents: (isHovered || isReading) ? 'auto' : 'none',
-            }}
-          >
-            🔊 {isReading ? 'Reading...' : 'Read Aloud'}
-          </motion.div>
+          
 
           {/* Button */}
           <motion.button
