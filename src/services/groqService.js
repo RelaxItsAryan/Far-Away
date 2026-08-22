@@ -47,7 +47,7 @@ export const getGroqResponse = async (userMessage, history = []) => {
         'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'qwen-qwq-32b',
+        model: 'llama-3.1-8b-instant',
         messages: messages,
         temperature: 0.7,
         max_tokens: 1024,
@@ -131,7 +131,7 @@ If you haven't extracted a field yet, leave it empty or as an empty array. Do no
         'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'qwen-qwq-32b',
+        model: 'llama-3.1-8b-instant',
         messages: messages,
         temperature: 0.5,
         max_tokens: 1500,
@@ -190,7 +190,7 @@ Each object should have:
         'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'qwen-qwq-32b',
+        model: 'llama-3.1-8b-instant',
         messages: [
           { role: 'system', content: BOOK_SYSTEM_INSTRUCTION },
           { role: 'user', content: `Topic: ${topic}` }
@@ -343,7 +343,7 @@ Rules:
         Authorization: `Bearer ${GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'qwen-qwq-32b',
+        model: 'llama-3.1-8b-instant',
         messages: [
           { role: 'system', content: systemPrompt },
           {
@@ -462,7 +462,7 @@ Evaluate this response and provide detailed feedback.`;
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'qwen-qwq-32b',
+      model: 'llama-3.1-8b-instant',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },

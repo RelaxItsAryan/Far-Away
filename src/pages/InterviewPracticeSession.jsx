@@ -158,17 +158,11 @@ const InterviewPracticeSession = () => {
         }
       }
 
-      // Load MediaPipe models
-      try {
-        await confidenceEngine.initialize();
-        if (mounted) setEngineReady(true);
-      } catch (err) {
-        console.error('Confidence Engine init failed:', err);
-        if (mounted) setEngineError(true);
-        return;
-      }
+      // ── Camera is up — mark engine ready immediately so UI unlocks ─────────
+      // MediaPipe loads in the background; processFrame() handles simulated mode
+      if (mounted) setEngineReady(true);
 
-      // Start analysis loop
+      // Start analysis loop right away (processFrame returns null until initialized)
       const loop = () => {
         if (!mounted || !videoRef.current) return;
         const result = confidenceEngine.processFrame(videoRef.current, performance.now());
@@ -176,7 +170,11 @@ const InterviewPracticeSession = () => {
         rafRef.current = requestAnimationFrame(loop);
       };
       rafRef.current = requestAnimationFrame(loop);
-    };
+
+      // Load MediaPipe models in the background (non-blocking)
+      confidenceEngine.initialize().catch((err) => {
+        console.warn('Background confidence engine init failed (simulated mode active):', err.message);
+      });
 
     init();
 
