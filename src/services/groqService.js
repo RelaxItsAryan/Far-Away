@@ -1,4 +1,4 @@
-// Groq AI Service for Chatbot
+﻿// Groq AI Service for Chatbot
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
@@ -47,7 +47,7 @@ export const getGroqResponse = async (userMessage, history = []) => {
         'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'groq/compound',
+        model: 'groq/compound-mini',
         messages: messages,
         temperature: 0.7,
         max_tokens: 1024,
@@ -343,7 +343,7 @@ Rules:
         Authorization: `Bearer ${GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'groq/compound',
+        model: 'groq/compound-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           {
@@ -462,7 +462,7 @@ Evaluate this response and provide detailed feedback.`;
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'groq/compound',
+      model: 'groq/compound-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
@@ -471,6 +471,22 @@ Evaluate this response and provide detailed feedback.`;
       max_tokens: 1024,
     }),
   });
+
+  // ── Graceful 429 / rate-limit fallback ─────────────────────────────────────
+  if (response.status === 429) {
+    console.warn('[evaluateAnswer] Groq rate-limited (429). Returning simulated evaluation.');
+    const wordCount = answer.trim().split(/\s+/).length;
+    const baseScore = Math.min(85, 40 + Math.min(wordCount, 120) * 0.35);
+    const score = Math.round(baseScore);
+    return {
+      feedback: 'Your answer has been recorded. Detailed AI feedback is temporarily unavailable due to API limits — try again in a moment.',
+      strongAnswer: 'A strong answer would include a clear structure (situation, task, action, result), specific technical details, and measurable outcomes.',
+      missingElements: ['Specific examples', 'Quantified impact', 'Technical depth', 'Clear conclusion'],
+      confidenceScore: score,
+      confidenceLevel: score >= 75 ? 'High' : score >= 45 ? 'Medium' : 'Low',
+      confidenceExplanation: 'Estimated score based on answer length and structure (AI quota temporarily exceeded).',
+    };
+  }
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { generateInterviewQuestions, transcribeAudio, evaluateAnswer } from '../services/groqService';
 import { confidenceEngine } from '../services/confidenceEngine';
+import ISLSignLanguagePanel from '../components/ISLSignLanguagePanel';
 import './InterviewPracticeSession.css';
 
 const TOTAL_QUESTIONS = 10;
@@ -158,17 +159,11 @@ const InterviewPracticeSession = () => {
         }
       }
 
-      // Load MediaPipe models
-      try {
-        await confidenceEngine.initialize();
-        if (mounted) setEngineReady(true);
-      } catch (err) {
-        console.error('Confidence Engine init failed:', err);
-        if (mounted) setEngineError(true);
-        return;
-      }
+      // ── Camera is up — mark engine ready immediately so UI unlocks ─────────
+      // MediaPipe loads in the background; processFrame() handles simulated mode
+      if (mounted) setEngineReady(true);
 
-      // Start analysis loop
+      // Start analysis loop right away (processFrame returns null until initialized)
       const loop = () => {
         if (!mounted || !videoRef.current) return;
         const result = confidenceEngine.processFrame(videoRef.current, performance.now());
@@ -176,7 +171,12 @@ const InterviewPracticeSession = () => {
         rafRef.current = requestAnimationFrame(loop);
       };
       rafRef.current = requestAnimationFrame(loop);
-    };
+
+      // Load MediaPipe models in the background (non-blocking)
+      confidenceEngine.initialize().catch((err) => {
+        console.warn('Background confidence engine init failed (simulated mode active):', err.message);
+      });
+    }; // end of init()
 
     init();
 
@@ -438,6 +438,16 @@ const InterviewPracticeSession = () => {
               <span className="material-symbols-outlined">edit_note</span>
               Text Input
             </button>
+            <button
+              className={`focus-ring session-tab-btn ${activeTab === 'isl' ? 'session-tab-active' : ''}`}
+              onClick={() => setActiveTab('isl')}
+              role="tab"
+              aria-selected={activeTab === 'isl'}
+              type="button"
+            >
+              <span className="material-symbols-outlined">sign_language</span>
+              Sign Language
+            </button>
           </div>
 
           <div className="session-panel-content">
@@ -646,6 +656,37 @@ const InterviewPracticeSession = () => {
                 </div>
 
                 {/* AI Evaluation card on Text Tab */}
+                {evaluation && (
+                  <EvaluationCard evaluation={evaluation} getScoreColor={getConfidenceColor} />
+                )}
+              </div>
+            )}
+
+            {/* ── ISL Sign Language Tab ── */}
+            {activeTab === 'isl' && (
+              <div className="session-isl-panel" role="tabpanel">
+                <ISLSignLanguagePanel
+                  onTextUpdate={(text) => setTextAnswer(text)}
+                  existingVideoStream={videoStreamRef.current}
+                />
+
+                {textAnswer.trim() && (
+                  <div className="session-video-analyze-row" style={{ marginTop: 16 }}>
+                    <button
+                      className="focus-ring session-secondary-solid"
+                      onClick={handleSubmitAnswer}
+                      disabled={isEvaluating}
+                      type="button"
+                      style={{ width: '100%', minHeight: '52px' }}
+                    >
+                      <span className="material-symbols-outlined">
+                        {isEvaluating ? 'hourglass_top' : 'analytics'}
+                      </span>
+                      {isEvaluating ? 'AI Analyzing Answer…' : 'Analyze Sign Language Answer'}
+                    </button>
+                  </div>
+                )}
+
                 {evaluation && (
                   <EvaluationCard evaluation={evaluation} getScoreColor={getConfidenceColor} />
                 )}
