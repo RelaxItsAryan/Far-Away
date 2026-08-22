@@ -1,4 +1,4 @@
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+﻿const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 class VoiceNavigator {
@@ -284,7 +284,7 @@ Example: "Go to the interview preparation section" -> {"intent": "NAV_TO", "para
           'Authorization': `Bearer ${GROQ_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'mixtral-8x7b-32768',
+          model: 'groq/compound-mini',
           messages: [
             { role: 'system', content: COMMAND_SYSTEM_PROMPT },
             { role: 'user', content: transcript }
