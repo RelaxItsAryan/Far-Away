@@ -54,6 +54,7 @@
 .review-topbar {
   border-bottom: 1px solid var(--outline-variant);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
 }
 
 .review-topbar-inner,
@@ -75,9 +76,12 @@
 }
 
 .review-brand {
-  font-size: 2rem;
+  font-size: clamp(1.25rem, 4vw, 2rem);
   color: var(--primary);
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .review-nav-links {
@@ -478,6 +482,7 @@ mark {
   gap: 20px;
   align-items: center;
   justify-content: center;
+  text-align: center;
 }
 
 .review-cta-row h3 {
@@ -494,6 +499,8 @@ mark {
 .review-cta-actions {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .review-save-btn,
@@ -503,6 +510,7 @@ mark {
   padding: 0 20px;
   font-weight: 700;
   cursor: pointer;
+  min-width: 140px;
 }
 
 .review-save-btn {

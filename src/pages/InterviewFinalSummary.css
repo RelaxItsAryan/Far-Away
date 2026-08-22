@@ -72,12 +72,39 @@
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 16px 20px;
+  padding: 14px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  box-sizing: border-box;
 }
+
+.summary-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Back button — only shows when sidebar is hidden (<980 px) */
+.summary-back-btn {
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.summary-back-btn:hover { background: var(--surface-container-high); }
 
 .summary-topbar-inner h1 {
   margin: 0;
@@ -399,6 +426,7 @@
   flex-direction: column;
   gap: 12px;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .summary-actions button {
@@ -412,6 +440,7 @@
   gap: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
+  width: 100%;
 }
 
 .summary-btn-primary {
@@ -520,35 +549,25 @@
     padding-right: 40px;
   }
 
-  .summary-headline-desktop {
-    display: block;
-  }
-
-  .summary-headline-mobile {
-    display: none;
-  }
+  .summary-headline-desktop { display: block; }
+  .summary-headline-mobile  { display: none; }
 
   .summary-top-metrics {
     grid-template-columns: repeat(12, minmax(0, 1fr));
   }
 
-  .summary-gauge-card {
-    grid-column: span 5;
-  }
+  .summary-gauge-card  { grid-column: span 5; }
+  .summary-detail-grid { grid-column: span 7; }
 
-  .summary-detail-grid {
-    grid-column: span 7;
-  }
-
-  .summary-reco-grid {
-    grid-template-columns: 1fr 1fr;
-  }
+  .summary-reco-grid { grid-template-columns: 1fr 1fr; }
 
   .summary-actions {
     flex-direction: row;
     align-items: center;
     padding-top: 10px;
   }
+
+  .summary-actions button { width: auto; }
 
   .summary-footer-inner {
     flex-direction: row;
@@ -557,6 +576,9 @@
 }
 
 @media (min-width: 980px) {
+  /* Hide the back button when sidebar is visible */
+  .summary-back-btn { display: none; }
+
   .summary-sidenav {
     width: 256px;
     display: flex;
@@ -596,9 +618,7 @@
     transition: background 0.2s ease;
   }
 
-  .summary-sidenav nav a:hover {
-    background: var(--surface-container-high);
-  }
+  .summary-sidenav nav a:hover { background: var(--surface-container-high); }
 
   .summary-side-active {
     background: var(--primary);

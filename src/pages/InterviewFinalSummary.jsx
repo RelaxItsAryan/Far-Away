@@ -8,7 +8,18 @@ const InterviewFinalSummary = () => {
     <div className="summary-page-shell">
       <header className="summary-topbar">
         <div className="summary-topbar-inner">
-          <h1>Interview Prep Buddy</h1>
+          <div className="summary-topbar-left">
+            {/* Back link visible on mobile (sidebar hidden) */}
+            <button
+              className="summary-back-btn focus-ring"
+              onClick={() => navigate('/interview-prep')}
+              type="button"
+              aria-label="Back to Interview Prep"
+            >
+              <span className="material-symbols-outlined">arrow_back</span>
+            </button>
+            <h1>Interview Prep Buddy</h1>
+          </div>
           <div className="summary-topbar-actions">
             <button aria-label="Accessibility Settings" className="material-symbols-outlined focus-ring" type="button">settings_accessibility</button>
             <button aria-label="Voice Settings" className="material-symbols-outlined focus-ring" type="button">record_voice_over</button>
