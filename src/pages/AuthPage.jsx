@@ -184,6 +184,10 @@ const AuthPage = () => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
 
   useEffect(() => {
+    const role = searchParams.get('role');
+    if (role === 'candidate' || role === 'employer') {
+      setUserType(role);
+    }
     if (searchParams.get('verified') === 'true') {
       setSuccess('🎉 Email verified! You can now sign in.');
       setIsLogin(true);
