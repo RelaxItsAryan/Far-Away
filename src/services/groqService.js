@@ -47,7 +47,7 @@ export const getGroqResponse = async (userMessage, history = []) => {
         'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'groq/compound',
+        model: 'qwen-qwq-32b',
         messages: messages,
         temperature: 0.7,
         max_tokens: 1024,
@@ -131,7 +131,7 @@ If you haven't extracted a field yet, leave it empty or as an empty array. Do no
         'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'qwen-qwq-32b',
         messages: messages,
         temperature: 0.5,
         max_tokens: 1500,
@@ -190,7 +190,7 @@ Each object should have:
         'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'qwen-qwq-32b',
         messages: [
           { role: 'system', content: BOOK_SYSTEM_INSTRUCTION },
           { role: 'user', content: `Topic: ${topic}` }
@@ -343,7 +343,7 @@ Rules:
         Authorization: `Bearer ${GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'groq/compound',
+        model: 'qwen-qwq-32b',
         messages: [
           { role: 'system', content: systemPrompt },
           {
@@ -462,7 +462,7 @@ Evaluate this response and provide detailed feedback.`;
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'groq/compound',
+      model: 'qwen-qwq-32b',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
@@ -471,6 +471,22 @@ Evaluate this response and provide detailed feedback.`;
       max_tokens: 1024,
     }),
   });
+
+  // ── Graceful 429 / rate-limit fallback ─────────────────────────────────────
+  if (response.status === 429) {
+    console.warn('[evaluateAnswer] Groq rate-limited (429). Returning simulated evaluation.');
+    const wordCount = answer.trim().split(/\s+/).length;
+    const baseScore = Math.min(85, 40 + Math.min(wordCount, 120) * 0.35);
+    const score = Math.round(baseScore);
+    return {
+      feedback: 'Your answer has been recorded. Detailed AI feedback is temporarily unavailable due to API limits — try again in a moment.',
+      strongAnswer: 'A strong answer would include a clear structure (situation, task, action, result), specific technical details, and measurable outcomes.',
+      missingElements: ['Specific examples', 'Quantified impact', 'Technical depth', 'Clear conclusion'],
+      confidenceScore: score,
+      confidenceLevel: score >= 75 ? 'High' : score >= 45 ? 'Medium' : 'Low',
+      confidenceExplanation: 'Estimated score based on answer length and structure (AI quota temporarily exceeded).',
+    };
+  }
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
@@ -511,4 +527,3 @@ Evaluate this response and provide detailed feedback.`;
     throw new Error('Failed to parse evaluation response');
   }
 };
-

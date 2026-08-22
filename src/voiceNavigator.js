@@ -284,7 +284,7 @@ Example: "Go to the interview preparation section" -> {"intent": "NAV_TO", "para
           'Authorization': `Bearer ${GROQ_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
+          model: 'qwen-qwq-32b',
           messages: [
             { role: 'system', content: COMMAND_SYSTEM_PROMPT },
             { role: 'user', content: transcript }
