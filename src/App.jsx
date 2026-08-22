@@ -762,9 +762,7 @@ const AppLayout = () => {
   const isResumeBuilderPage = location.pathname === '/resume-builder';
   const isHomePage = location.pathname === '/';
   const isAuthPage = location.pathname === '/auth';
-<<<<<<< HEAD
   const isInterviewPrepPage = location.pathname.startsWith('/interview-prep');
-=======
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState(() => {
     return localStorage.getItem('selectedRole') || null;
@@ -783,7 +781,6 @@ const AppLayout = () => {
     // Navigate with role param so AuthPage can pre-select it
     navigate(`/auth?role=${role}`);
   };
->>>>>>> f56e70f593fc8696f26e8d8af4cf34bf90590f9c
 
   return (
     <>
