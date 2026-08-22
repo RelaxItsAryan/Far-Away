@@ -15,6 +15,9 @@ import KeyboardShortcutsHelp from './KeyboardShortcutsHelp';
 import VoiceControl from './VoiceControl';
 import AccessibilityMenu from './AccessibilityMenu';
 import InterviewPrepPage from './pages/InterviewPrepPage';
+import InterviewPracticeSession from './pages/InterviewPracticeSession';
+import InterviewAnswerReview from './pages/InterviewAnswerReview';
+import InterviewFinalSummary from './pages/InterviewFinalSummary';
 import AboutUs from './pages/AboutUs';
 import ResumeBuilder from './pages/ResumeBuilder';
 import UserProfile from './pages/UserProfile';
@@ -707,6 +710,21 @@ const AnimatedRoutes = () => {
             <InterviewPrepPage />
           </motion.div>
         } />
+        <Route path="/interview-prep/session" element={
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+            <InterviewPracticeSession />
+          </motion.div>
+        } />
+        <Route path="/interview-prep/review" element={
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+            <InterviewAnswerReview />
+          </motion.div>
+        } />
+        <Route path="/interview-prep/summary" element={
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+            <InterviewFinalSummary />
+          </motion.div>
+        } />
         <Route path="/resume-builder" element={
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
             <ResumeBuilder />
@@ -743,6 +761,7 @@ const AppLayout = () => {
   const isResumeBuilderPage = location.pathname === '/resume-builder';
   const isHomePage = location.pathname === '/';
   const isAuthPage = location.pathname === '/auth';
+  const isInterviewPrepPage = location.pathname.startsWith('/interview-prep');
 
   return (
     <>
@@ -760,20 +779,20 @@ const AppLayout = () => {
       <a href="#main-content" className="skip-link">Skip to main content</a>
 
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        {!isAuthPage && <Header />}
+        {!(isAuthPage || isInterviewPrepPage) && <Header />}
 
         <main
           id="main-content"
           data-focus-area="main-content"
           tabIndex="-1"
-          className={(!isHomePage && !isAuthPage) ? 'grain-bg' : ''}
-          style={{ flex: 1, paddingTop: (isHomePage || isAuthPage) ? '0' : '100px' }}
+          className={(!isHomePage && !isAuthPage && !isInterviewPrepPage) ? 'grain-bg' : ''}
+          style={{ flex: 1, paddingTop: (isHomePage || isAuthPage || isInterviewPrepPage) ? '0' : '100px' }}
           role="main"
         >
           <AnimatedRoutes />
         </main>
 
-        {!(isChatPage || isResumeBuilderPage || isAuthPage) && <Footer />}
+        {!(isChatPage || isResumeBuilderPage || isAuthPage || isInterviewPrepPage) && <Footer />}
       </div>
 
       {/* Chatbot quick launch button above voice control */}
