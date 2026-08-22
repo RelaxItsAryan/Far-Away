@@ -175,6 +175,7 @@ const InterviewPracticeSession = () => {
       confidenceEngine.initialize().catch((err) => {
         console.warn('Background confidence engine init failed (simulated mode active):', err.message);
       });
+    }; // end of init()
 
     init();
 
