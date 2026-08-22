@@ -1,4 +1,4 @@
-﻿// Groq AI Service for Chatbot
+// Groq AI Service for Chatbot
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
@@ -721,5 +721,58 @@ Respond with ONLY valid JSON matching this schema:
     return null;
   }
 };
+
+/**
+ * Predict and expand raw sign language keywords/letters into a fluent interview sentence using Groq AI
+ * @param {string} rawSignText - Signed letters or keywords (e.g. "built react app solve performance issue")
+ * @param {string} questionContext - Optional interview question context
+ * @returns {Promise<string>} Expanded fluent sentence
+ */
+export const predictSentenceFromSignKeywords = async (rawSignText, questionContext = '') => {
+  if (!GROQ_API_KEY || !rawSignText.trim()) return rawSignText;
+
+  const systemPrompt = `You are an AI Sign Language Interpreter & Sentence Constructor for job interviews.
+The user is providing raw words/letters outputted by a Real-Time Hand Sign Language (ISL) Recognition camera system.
+Your job is to translate these raw, fragmented sign language tokens into a clear, grammatical, and professional interview response sentence.
+
+Rules:
+- Keep the user's core meaning, technical terms, and intent intact.
+- Make it sound natural and confident as an interview answer.
+- Do NOT add conversational filler like "Here is your sentence:".
+- Output ONLY the expanded final sentence.`;
+
+  const userPrompt = `Interview Question Context: ${questionContext || 'General technical question'}
+Raw Signed Tokens: "${rawSignText}"
+
+Construct a clear, professional interview sentence based on these signed tokens.`;
+
+  try {
+    const response = await fetch(GROQ_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'groq/compound',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.4,
+        max_tokens: 300
+      })
+    });
+
+    if (!response.ok) return rawSignText;
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content?.trim();
+    return content || rawSignText;
+  } catch (error) {
+    console.error('Error predicting sentence from sign keywords:', error);
+    return rawSignText;
+  }
+};
+
 
 

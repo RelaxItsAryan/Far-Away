@@ -7,7 +7,9 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { islGestureEngine } from '../services/islGestureEngine';
+import { predictSentenceFromSignKeywords } from '../services/groqService';
 import './ISLSignLanguagePanel.css';
+
 
 // ISL reference hints per letter
 const ISL_HINTS = {
@@ -56,8 +58,9 @@ const WORD_BANK = [
 const UNIQUE_WORDS = [...new Set(WORD_BANK)];
 
 // Hold-to-confirm constants
-const HOLD_STEPS    = 30;  // frames before confirming
-const HOLD_DURATION = 1500; // ms feedback display
+const HOLD_STEPS    = 12;  // frames before confirming (~0.4s)
+const HOLD_DURATION = 1000; // ms feedback display
+
 
 const ISLSignLanguagePanel = ({ onTextUpdate, disabled = false, existingVideoStream = null }) => {
   const videoRef          = useRef(null);
@@ -107,11 +110,11 @@ const ISLSignLanguagePanel = ({ onTextUpdate, disabled = false, existingVideoStr
     setTimeout(() => setConfirmedFlash(false), 300);
   }, [currentWord, onTextUpdate]);
 
-  // Draw skeleton hand on canvas overlay
-  const drawLandmarks = useCallback((landmarks) => {
+  // Draw skeleton hands on canvas overlay (supports both single & multi-hand arrays)
+  const drawLandmarks = useCallback((landmarksData) => {
     const canvas = canvasRef.current;
     const video  = videoRef.current;
-    if (!canvas || !video || !landmarks || landmarks.length === 0) return;
+    if (!canvas || !video || !landmarksData || landmarksData.length === 0) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -122,6 +125,9 @@ const ISLSignLanguagePanel = ({ onTextUpdate, disabled = false, existingVideoStr
     const W = canvas.width;
     const H = canvas.height;
 
+    // Support single hand [[x,y,z]...] and dual hand [hand1, hand2]
+    const handsList = Array.isArray(landmarksData[0]?.[0]) ? landmarksData : [landmarksData];
+
     const CONNECTIONS = [
       [0,1],[1,2],[2,3],[3,4],
       [0,5],[5,6],[6,7],[7,8],
@@ -131,53 +137,70 @@ const ISLSignLanguagePanel = ({ onTextUpdate, disabled = false, existingVideoStr
       [5,9],[9,13],[13,17],
     ];
 
-    // Mirror to match selfie-mode video
-    const pts = landmarks.map(([x, y]) => [(1 - x) * W, y * H]);
+    const HAND_COLORS = ['rgba(139,92,246,0.95)', 'rgba(13,148,136,0.95)'];
 
-    // Skeleton lines
-    ctx.strokeStyle = 'rgba(139,92,246,0.8)';
-    ctx.lineWidth = 2;
-    for (const [a, b] of CONNECTIONS) {
-      ctx.beginPath();
-      ctx.moveTo(pts[a][0], pts[a][1]);
-      ctx.lineTo(pts[b][0], pts[b][1]);
-      ctx.stroke();
-    }
+    handsList.forEach((handLandmarks, handIdx) => {
+      if (!handLandmarks || handLandmarks.length === 0) return;
+      const pts = handLandmarks.map(([x, y]) => [(1 - x) * W, y * H]);
 
-    // Colored finger dots
-    const COLORS = ['#f43f5e','#8b5cf6','#06b6d4','#10b981','#f59e0b'];
-    for (let i = 0; i < pts.length; i++) {
-      const group = i === 0 ? 0 : Math.min(Math.ceil(i / 4), 4);
-      ctx.beginPath();
-      ctx.arc(pts[i][0], pts[i][1], i % 4 === 0 ? 5 : 4, 0, Math.PI * 2);
-      ctx.fillStyle   = COLORS[group];
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-      ctx.lineWidth   = 1;
-      ctx.stroke();
-    }
+      // Skeleton lines
+      ctx.strokeStyle = HAND_COLORS[handIdx % HAND_COLORS.length];
+      ctx.lineWidth = 3;
+      for (const [a, b] of CONNECTIONS) {
+        if (pts[a] && pts[b]) {
+          ctx.beginPath();
+          ctx.moveTo(pts[a][0], pts[a][1]);
+          ctx.lineTo(pts[b][0], pts[b][1]);
+          ctx.stroke();
+        }
+      }
 
-    // Wrist dot
-    ctx.beginPath();
-    ctx.arc(pts[0][0], pts[0][1], 7, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(139,92,246,0.9)';
-    ctx.fill();
+      // Colored finger dots
+      const COLORS = handIdx === 0
+        ? ['#f43f5e','#8b5cf6','#06b6d4','#10b981','#f59e0b']
+        : ['#ec4899','#10b981','#3b82f6','#f59e0b','#8b5cf6'];
+      for (let i = 0; i < pts.length; i++) {
+        const group = i === 0 ? 0 : Math.min(Math.ceil(i / 4), 4);
+        if (pts[i]) {
+          ctx.beginPath();
+          ctx.arc(pts[i][0], pts[i][1], i % 4 === 0 ? 6 : 5, 0, Math.PI * 2);
+          ctx.fillStyle   = COLORS[group];
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+          ctx.lineWidth   = 1.5;
+          ctx.stroke();
+        }
+      }
+
+      // Wrist dot
+      if (pts[0]) {
+        ctx.beginPath();
+        ctx.arc(pts[0][0], pts[0][1], 8, 0, Math.PI * 2);
+        ctx.fillStyle = HAND_COLORS[handIdx % HAND_COLORS.length];
+        ctx.fill();
+      }
+    });
   }, []);
+
 
   // Main init effect
   useEffect(() => {
     let active = true;
 
     const init = async () => {
-      // Start camera (reuse existing stream if provided from the confidence tab)
+      // Start camera stream
       try {
         let stream = existingVideoStream;
-        if (!stream || stream.getVideoTracks().length === 0) {
+        const isTrackActive = stream && stream.getVideoTracks().some(t => t.readyState === 'live');
+        if (!isTrackActive) {
           stream = await navigator.mediaDevices.getUserMedia({
-            video: { width: 640, height: 480, frameRate: { ideal: 30 } },
+            video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
           });
         }
-        if (!active) { stream.getTracks().forEach(t => t.stop()); return; }
+        if (!active) {
+          if (!existingVideoStream) stream.getTracks().forEach(t => t.stop());
+          return;
+        }
         streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -185,6 +208,7 @@ const ISLSignLanguagePanel = ({ onTextUpdate, disabled = false, existingVideoStr
         }
       } catch (err) {
         if (active) {
+          console.error('[ISL Panel] Camera error:', err);
           setError(err.name === 'NotAllowedError'
             ? 'Camera permission denied. Please allow camera access.'
             : 'Unable to access camera.');
@@ -201,7 +225,6 @@ const ISLSignLanguagePanel = ({ onTextUpdate, disabled = false, existingVideoStr
         if (active) setEngineLoaded(true);
       }).catch(err => {
         console.warn('[ISL Panel] Engine failed to load:', err.message);
-        // UI stays functional but no gestures detected
       });
 
       // Hold-to-confirm state (local to the loop)
@@ -209,10 +232,17 @@ const ISLSignLanguagePanel = ({ onTextUpdate, disabled = false, existingVideoStr
       let holdLetter = null;
 
       const processFrame = () => {
-        if (!active || !videoRef.current || videoRef.current.readyState < 2) {
+        if (
+          !active ||
+          !videoRef.current ||
+          videoRef.current.readyState < 2 ||
+          !videoRef.current.videoWidth ||
+          !videoRef.current.videoHeight
+        ) {
           rafRef.current = requestAnimationFrame(processFrame);
           return;
         }
+
         if (isPaused) {
           rafRef.current = requestAnimationFrame(processFrame);
           return;
@@ -304,10 +334,28 @@ const ISLSignLanguagePanel = ({ onTextUpdate, disabled = false, existingVideoStr
     onTextUpdate?.('');
   };
 
+  const [isPredicting, setIsPredicting] = useState(false);
+
+  const handleGroqPredict = async () => {
+    const raw = (sentence + currentWord).trim();
+    if (!raw) return;
+    setIsPredicting(true);
+    try {
+      const predicted = await predictSentenceFromSignKeywords(raw);
+      setSentence(predicted + ' ');
+      setCurrentWord('');
+      onTextUpdate?.(predicted);
+    } catch (err) {
+      console.error(err);
+    }
+    setIsPredicting(false);
+  };
+
   const handleUseText = () => {
     const full = (sentence + currentWord).trim();
     onTextUpdate?.(full);
   };
+
 
   const handleSuggestionTap = (word) => {
     setSentence(prev => {
@@ -347,9 +395,11 @@ const ISLSignLanguagePanel = ({ onTextUpdate, disabled = false, existingVideoStr
         <video
           ref={videoRef}
           className="isl-video"
+          autoPlay
           playsInline
           muted
         />
+
         <canvas
           ref={canvasRef}
           className="isl-canvas"
@@ -513,22 +563,35 @@ const ISLSignLanguagePanel = ({ onTextUpdate, disabled = false, existingVideoStr
           <button className="isl-action-btn isl-action-btn--use" onClick={handleUseText} disabled={!displayText} type="button">
             ✓ Use as Answer
           </button>
+          <button
+            className="isl-action-btn"
+            style={{ background: 'var(--accent-purple-glow, #8b5cf615)', color: '#8b5cf6', borderColor: '#8b5cf6', fontWeight: 700 }}
+            onClick={handleGroqPredict}
+            disabled={!displayText || isPredicting}
+            type="button"
+          >
+            {isPredicting ? '⚡ AI Predicting…' : '✨ Groq AI Expand Sentence'}
+          </button>
+
         </div>
       </div>
 
       {/* ISL Alphabet Quick Reference */}
-      <details className="isl-reference">
-        <summary className="isl-reference-summary">ISL Alphabet Quick Reference ▾</summary>
+      <details className="isl-reference" open>
+        <summary className="isl-reference-summary">ISL Alphabet & Quick Sign Keyboard (Tap any letter to add) ▾</summary>
         <div className="isl-alphabet-grid">
           {Object.entries(ISL_HINTS).map(([letter, hint]) => (
-            <div
+            <button
               key={letter}
+              type="button"
+              onClick={() => addLetter(letter)}
               className={`isl-alpha-cell ${detectedLetter === letter ? 'isl-alpha-cell--active' : ''}`}
-              title={hint}
+              title={`${letter}: ${hint} (Click to add)`}
+              style={{ cursor: 'pointer', background: detectedLetter === letter ? 'var(--accent-purple)' : undefined, color: detectedLetter === letter ? 'white' : undefined }}
             >
               <span className="isl-alpha-letter">{letter}</span>
               {detectedLetter === letter && <span className="isl-alpha-dot" />}
-            </div>
+            </button>
           ))}
         </div>
       </details>
@@ -537,11 +600,12 @@ const ISLSignLanguagePanel = ({ onTextUpdate, disabled = false, existingVideoStr
       <div className="isl-instructions">
         <span className="isl-instructions-icon">💡</span>
         <p className="isl-instructions-text">
-          Show ISL hand signs in front of the camera.{' '}
-          <strong>Hold each gesture for ~1.5 seconds</strong> to confirm the letter.
-          Use <strong>Space</strong> to finish a word, then click <strong>Use as Answer</strong> to submit.
+          Show ISL hand signs in front of the camera or tap letters above.{' '}
+          <strong>Hold gestures for ~0.4s</strong> to auto-confirm letters.
+          Click <strong>✨ Groq AI Expand Sentence</strong> to turn raw signs into full, fluent interview responses!
         </p>
       </div>
+
     </div>
   );
 };

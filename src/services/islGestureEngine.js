@@ -152,9 +152,10 @@ class ISLGestureEngine {
     this.initialized    = false;
     this.initializing   = false;
     this.gestureBuffer  = [];
-    this.BUFFER_SIZE    = 10;
-    this.CONFIDENCE_THRESHOLD = 0.65;
+    this.BUFFER_SIZE    = 8;
+    this.CONFIDENCE_THRESHOLD = 0.45;
   }
+
 
   async initialize() {
     if (this.initialized || this.initializing) return;
@@ -178,19 +179,19 @@ class ISLGestureEngine {
               delegate: 'GPU',
             },
             runningMode: 'VIDEO',
-            numHands: 1,
-            minHandDetectionConfidence: 0.6,
-            minHandPresenceConfidence:  0.6,
+            numHands: 2,
+            minHandDetectionConfidence: 0.5,
+            minHandPresenceConfidence:  0.5,
             minTrackingConfidence:      0.5,
           });
         })(),
         timeout,
       ]);
       this.initialized = true;
-      console.log('[ISLGestureEngine] Initialized.');
+      console.log('[ISLGestureEngine] Initialized with 2-hand tracking.');
     } catch (err) {
       console.warn('[ISLGestureEngine] Failed to load:', err.message);
-      this.initialized = false; // stay false so processFrame returns no-hand
+      this.initialized = false;
     } finally {
       this.initializing = false;
     }
@@ -198,54 +199,68 @@ class ISLGestureEngine {
 
   processFrame(video, timestamp) {
     if (!this.initialized || !this.handLandmarker) {
-      return { letter: null, confidence: 0, handDetected: false };
+      return { letter: null, confidence: 0, handDetected: false, landmarks: [] };
     }
     if (!video || video.readyState < 2) {
-      return { letter: null, confidence: 0, handDetected: false };
+      return { letter: null, confidence: 0, handDetected: false, landmarks: [] };
     }
 
     let result;
     try {
       result = this.handLandmarker.detectForVideo(video, timestamp);
     } catch {
-      return { letter: null, confidence: 0, handDetected: false };
+      return { letter: null, confidence: 0, handDetected: false, landmarks: [] };
     }
 
     if (!result.landmarks || result.landmarks.length === 0) {
       this.gestureBuffer = [];
-      return { letter: null, confidence: 0, handDetected: false };
+      return { letter: null, confidence: 0, handDetected: false, landmarks: [] };
     }
 
-    const landmarks = result.landmarks[0];
-    const { letter, confidence } = classifyISLGesture(landmarks);
+    // Process all detected hands (up to 2 hands simultaneously)
+    let bestLetter = null;
+    let bestConfidence = 0;
+    const allHandsLandmarks = [];
+
+    for (let h = 0; h < result.landmarks.length; h++) {
+      const landmarks = result.landmarks[h];
+      const { letter, confidence } = classifyISLGesture(landmarks);
+      allHandsLandmarks.push(landmarks.map(lm => [lm.x, lm.y, lm.z]));
+
+      if (letter && letter !== '?' && confidence > bestConfidence) {
+        bestLetter = letter;
+        bestConfidence = confidence;
+      }
+    }
 
     // Temporal smoothing
-    if (letter && letter !== '?' && confidence >= this.CONFIDENCE_THRESHOLD) {
-      this.gestureBuffer.push(letter);
+    if (bestLetter && bestConfidence >= this.CONFIDENCE_THRESHOLD) {
+      this.gestureBuffer.push(bestLetter);
       if (this.gestureBuffer.length > this.BUFFER_SIZE) this.gestureBuffer.shift();
     } else {
       this.gestureBuffer = [];
     }
 
     const stableLetter = this._majorityVote();
-    const landmarkArray = landmarks.map(lm => [lm.x, lm.y, lm.z]);
 
     return {
       letter:      stableLetter,
-      confidence:  stableLetter ? confidence : 0,
+      confidence:  stableLetter ? bestConfidence : 0,
       handDetected: true,
-      landmarks:   landmarkArray,
+      landmarks:   allHandsLandmarks,
     };
   }
 
+
   _majorityVote() {
-    if (this.gestureBuffer.length < 6) return null;
+    if (this.gestureBuffer.length < 3) return null;
     const counts = {};
     for (const g of this.gestureBuffer) counts[g] = (counts[g] || 0) + 1;
     const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
     const [topLetter, topCount] = sorted[0];
-    return topCount / this.gestureBuffer.length >= 0.6 ? topLetter : null;
+    return topCount / this.gestureBuffer.length >= 0.4 ? topLetter : null;
   }
+
 
   destroy() {
     this.handLandmarker?.close?.();
