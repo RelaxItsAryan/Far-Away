@@ -20,8 +20,8 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthChange(async (firebaseUser) => {
-      // Only treat the user as authenticated if their email is verified
-      if (firebaseUser && firebaseUser.emailVerified) {
+      // Treat user as authenticated if email is verified OR if they logged in anonymously OR use the guest fallback email
+      if (firebaseUser && (firebaseUser.emailVerified || firebaseUser.isAnonymous || firebaseUser.email === 'guest@apnarozgaar.com')) {
         setUser(firebaseUser);
 
         // Fetch profile from Realtime Database

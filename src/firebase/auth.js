@@ -11,7 +11,8 @@ import {
   sendEmailVerification,
   reload,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  signInAnonymously
 } from 'firebase/auth';
 import { ref, set, get, update } from 'firebase/database';
 import { auth, rtdb } from './config';
@@ -336,4 +337,64 @@ export const updateUserProfile = async (userData, userType = 'candidate') => {
 // Auth state listener
 export const onAuthChange = (callback) => {
   return onAuthStateChanged(auth, callback);
+};
+
+// Login anonymously or via fallback guest credentials as Guest
+export const loginAsGuest = async (userType = 'candidate') => {
+  const guestEmail = 'guest@apnarozgaar.com';
+  const guestPassword = 'apnarozgaar123';
+
+  try {
+    let userCredential;
+    
+    // First, try standard Anonymous Login (if enabled in Firebase Console)
+    try {
+      const result = await signInAnonymously(auth);
+      userCredential = { user: result.user };
+      console.log('[loginAsGuest] Anonymous sign-in succeeded');
+    } catch (anonError) {
+      console.warn('[loginAsGuest] Anonymous sign-in failed, falling back to dummy email/password login:', anonError.message);
+      
+      // Fallback: Login with predefined guest credentials
+      try {
+        userCredential = await signInWithEmailAndPassword(auth, guestEmail, guestPassword);
+        console.log('[loginAsGuest] Fallback email login succeeded');
+      } catch (loginError) {
+        // If user does not exist, register them
+        if (loginError.code === 'auth/user-not-found' || loginError.code === 'auth/invalid-credential' || loginError.message.includes('user-not-found')) {
+          console.log('[loginAsGuest] Guest user not found, registering new fallback account...');
+          userCredential = await createUserWithEmailAndPassword(auth, guestEmail, guestPassword);
+          await updateProfile(userCredential.user, { 
+            displayName: `Guest ${userType === 'employer' ? 'Employer' : 'Candidate'}` 
+          });
+        } else {
+          throw loginError;
+        }
+      }
+    }
+
+    const user = userCredential.user;
+
+    // Initialize guest profile in RTDB
+    const userRef = ref(rtdb, `users/${user.uid}`);
+    const snapshot = await get(userRef);
+
+    if (!snapshot.exists()) {
+      await set(userRef, {
+        uid: user.uid,
+        email: user.email || guestEmail,
+        displayName: `Guest ${userType === 'employer' ? 'Employer' : 'Candidate'}`,
+        name: `Guest ${userType === 'employer' ? 'Employer' : 'Candidate'}`,
+        userType: userType,
+        isGuest: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+    }
+
+    return { success: true, user };
+  } catch (error) {
+    console.error('[loginAsGuest] Guest login failed entirely:', error.message);
+    return { success: false, error: error.message };
+  }
 };
