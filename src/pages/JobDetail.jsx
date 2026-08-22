@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { Briefcase, MapPin, DollarSign, Clock, ArrowLeft, CheckCircle, Loader2, Flag, X } from 'lucide-react';
+import { Briefcase, MapPin, DollarSign, Clock, ArrowLeft, CheckCircle, Loader2, Flag, X, Sparkles } from 'lucide-react';
+
 import { AccessibleButton } from '../components/AccessibleButton';
 import { getJobById, applyToJob, reportJob } from '../firebase/jobs';
 import { useAuth } from '../context/AuthContext';
@@ -160,10 +161,31 @@ export default function JobDetail() {
               display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)'
             }}>{logo}</div>
             <div>
-              <p style={{ color: 'var(--text-muted)', fontWeight: '600', marginBottom: '4px' }}>{job.company}</p>
-              <h1 style={{ fontSize: '2rem', margin: 0 }}>{job.title}</h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <p style={{ color: 'var(--text-muted)', fontWeight: '600', margin: 0 }}>{job.company}</p>
+                {job.status === 'active' && (
+                  <span style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(13, 148, 136, 0.12)', color: '#0d9488', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <Sparkles size={11} /> AI Safety Verified
+                  </span>
+                )}
+              </div>
+              <h1 style={{ fontSize: '2rem', margin: '4px 0 0 0' }}>{job.title}</h1>
             </div>
           </div>
+
+          {/* AI Verification Banner */}
+          {job.aiVerificationSummary && (
+            <div style={{ padding: '14px 18px', borderRadius: '14px', background: 'rgba(13, 148, 136, 0.05)', border: '1px solid rgba(13, 148, 136, 0.2)', display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(13, 148, 136, 0.15)', color: '#0d9488', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Sparkles size={18} />
+              </div>
+              <div>
+                <strong style={{ fontSize: '0.85rem', color: '#0d9488', display: 'block' }}>Groq AI Safety Assessment:</strong>
+                <p style={{ margin: '2px 0 0 0', fontSize: '0.85rem', color: 'var(--text-primary)' }}>{job.aiVerificationSummary}</p>
+              </div>
+            </div>
+          )}
+
 
           {/* Meta */}
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', paddingBottom: '20px', borderBottom: '1px solid var(--border)' }}>

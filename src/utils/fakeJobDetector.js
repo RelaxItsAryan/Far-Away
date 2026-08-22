@@ -114,3 +114,45 @@ export const evaluateJobRisk = (jobData, existingJobs = []) => {
     reasons
   };
 };
+
+import { verifyJobWithAI } from '../services/groqService';
+
+/**
+ * Automated Fake Job Detection Scoring Algorithm (Hybrid Rule + Groq AI)
+ * Scans job title, description, contact details, salary, and company info
+ * to output a Risk Score (0-100), Risk Level (low, medium, high) and flag reasons.
+ */
+export const evaluateJobRiskWithAI = async (jobData, existingJobs = []) => {
+  // 1. First run rule-based heuristic check
+  const ruleResult = evaluateJobRisk(jobData, existingJobs);
+
+  // 2. Run Groq AI screening
+  try {
+    const aiResult = await verifyJobWithAI(jobData);
+    if (aiResult) {
+      // Combine risk scores (take max of rule-based or AI to prioritize safety)
+      const combinedScore = Math.max(ruleResult.riskScore, aiResult.riskScore);
+      const combinedReasons = Array.from(new Set([...ruleResult.reasons, ...(aiResult.reasons || [])]));
+
+      const riskLevel = combinedScore > 65 ? 'high' : combinedScore > 30 ? 'medium' : 'low';
+      const status = riskLevel === 'high' ? 'rejected' : riskLevel === 'medium' ? 'pending_admin' : 'active';
+
+      return {
+        riskScore: combinedScore,
+        riskLevel,
+        status,
+        reasons: combinedReasons,
+        aiSummary: aiResult.summary || 'AI Safety verification completed.'
+      };
+    }
+  } catch (err) {
+    console.warn('Groq AI job screening fallback to rule engine:', err);
+  }
+
+  // Fallback to rule engine if AI unavailable
+  return {
+    ...ruleResult,
+    aiSummary: ruleResult.riskScore === 0 ? 'Passed safety screening.' : 'Flagged by safety screening.'
+  };
+};
+

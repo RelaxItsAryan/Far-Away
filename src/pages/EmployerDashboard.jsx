@@ -5,8 +5,9 @@ import { Briefcase, Trash2, PlusCircle, CheckCircle, Users, Crown } from 'lucide
 import { AccessibleButton } from '../components/AccessibleButton';
 import { useAuth } from '../context/AuthContext';
 import { createJob, getJobsByEmployer, deleteJob, getAllJobsRaw } from '../firebase/jobs';
-import { evaluateJobRisk } from '../utils/fakeJobDetector';
+import { evaluateJobRiskWithAI } from '../utils/fakeJobDetector';
 import CompanyVerificationPage from './CompanyVerificationPage';
+
 
 export default function EmployerDashboard() {
   const navigate = useNavigate();
@@ -121,15 +122,16 @@ export default function EmployerDashboard() {
       employerId: user.uid
     };
 
-    // Evaluate job risk using the scoring algorithm
-    const evaluation = evaluateJobRisk(jobPayload, existingJobs);
+    // Evaluate job risk using Groq AI + rule scoring algorithm
+    const evaluation = await evaluateJobRiskWithAI(jobPayload, existingJobs);
     jobPayload.status = evaluation.status;
     jobPayload.riskScore = evaluation.riskScore;
     jobPayload.riskLevel = evaluation.riskLevel;
     jobPayload.riskReasons = evaluation.reasons;
+    jobPayload.aiVerificationSummary = evaluation.aiSummary;
 
     if (evaluation.status === 'rejected') {
-      showToast('🔴 Job Rejected: Failed automatic safety and anti-scam checks.', 'error');
+      showToast(`🔴 Job Rejected by AI Safety: ${evaluation.reasons?.[0] || 'Failed automatic anti-scam checks.'}`, 'error');
       setSubmitting(false);
       return;
     }

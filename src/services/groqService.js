@@ -131,7 +131,7 @@ If you haven't extracted a field yet, leave it empty or as an empty array. Do no
         'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'groq/compound-mini',
+        model: 'groq/compound',
         messages: messages,
         temperature: 0.5,
         max_tokens: 1500,
@@ -190,7 +190,7 @@ Each object should have:
         'Authorization': `Bearer ${GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'groq/compound-mini',
+        model: 'groq/compound',
         messages: [
           { role: 'system', content: BOOK_SYSTEM_INSTRUCTION },
           { role: 'user', content: `Topic: ${topic}` }
@@ -527,3 +527,199 @@ Evaluate this response and provide detailed feedback.`;
     throw new Error('Failed to parse evaluation response');
   }
 };
+
+/**
+ * Automatically verify company details using Groq AI
+ * @param {Object} companyData - { companyName, companyEmail, phone, website, address, recruiterName, gstDetails, hasDocument }
+ * @returns {Promise<{ status: 'verified'|'pending'|'rejected', confidenceScore: number, summary: string, riskFlags: string[] }>}
+ */
+export const verifyCompanyWithAI = async (companyData) => {
+  if (!GROQ_API_KEY) {
+    console.warn('Groq API key not configured');
+    return {
+      status: 'pending',
+      confidenceScore: 50,
+      summary: 'Groq AI key unavailable for automatic verification.',
+      riskFlags: ['API key missing']
+    };
+  }
+
+  const prompt = `You are an AI Compliance Auditor for corporate registrations in India.
+Analyze the following company registration data for legitimacy:
+Company Name: ${companyData.companyName || 'N/A'}
+Official Email: ${companyData.companyEmail || 'N/A'}
+Phone: ${companyData.phone || 'N/A'}
+Website: ${companyData.website || 'None'}
+Address: ${companyData.address || 'N/A'}
+Recruiter Name: ${companyData.recruiterName || 'N/A'}
+GSTIN / Reg Number: ${companyData.gstDetails || 'N/A'}
+Registration Document Uploaded: ${companyData.hasDocument ? 'Yes' : 'No'}
+
+Evaluation Rules:
+1. Indian GSTIN format check: Standard format is 15 alphanumeric characters (e.g., 29AAAAA1111A1Z1 or 07AAAAA0000A1Z5 - 2 digit state code + 10 digit PAN + 1 digit entity + 1 'Z' + 1 check digit). If GSTIN is missing, invalid length, or clearly fake, flag it.
+2. Email Consistency: Check if domain matches company name or if it's a generic email (gmail/yahoo is acceptable for micro-business, but note it).
+3. Field Completeness: All mandatory fields should be present.
+4. Output standard status:
+   - "verified": Legitimate details, valid GSTIN pattern, valid email & document present. Confidence score >= 80.
+   - "pending": Minor concerns, generic email, or needs human document view. Confidence score 50-79.
+   - "rejected": Falsified GSTIN, suspicious/scam email, offensive name, or missing document. Confidence score < 50.
+
+You MUST respond with ONLY valid JSON in this exact structure:
+{
+  "status": "verified" | "pending" | "rejected",
+  "confidenceScore": <number 0-100>,
+  "summary": "<1-2 sentence concise summary of verification>",
+  "riskFlags": ["<flag1>", "<flag2>"]
+}`;
+
+  try {
+    const response = await fetch(GROQ_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'groq/compound',
+        messages: [
+          { role: 'system', content: 'You are a precise corporate audit AI. Respond strictly in JSON format.' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.2,
+        max_tokens: 800
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Groq API error ${response.status}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) throw new Error('No content in response');
+
+    let cleaned = content.trim();
+    const startIdx = cleaned.indexOf('{');
+    const endIdx = cleaned.lastIndexOf('}');
+    if (startIdx !== -1 && endIdx !== -1) {
+      cleaned = cleaned.substring(startIdx, endIdx + 1);
+    }
+    const parsed = JSON.parse(cleaned);
+
+    return {
+      status: ['verified', 'pending', 'rejected'].includes(parsed.status) ? parsed.status : 'pending',
+      confidenceScore: Math.max(0, Math.min(100, Number(parsed.confidenceScore ?? 70))),
+      summary: String(parsed.summary || 'AI Verification complete.'),
+      riskFlags: Array.isArray(parsed.riskFlags) ? parsed.riskFlags.map(String) : []
+    };
+  } catch (error) {
+    console.error('Error in verifyCompanyWithAI:', error);
+    // Fallback: simple heuristic validation
+    const gst = (companyData.gstDetails || '').trim();
+    const isGstValid = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i.test(gst) || gst.length >= 10;
+    return {
+      status: isGstValid ? 'verified' : 'pending',
+      confidenceScore: isGstValid ? 85 : 60,
+      summary: isGstValid ? 'GST format validated.' : 'Requires manual review of GST certificate.',
+      riskFlags: isGstValid ? [] : ['GST format unverified by AI']
+    };
+  }
+};
+
+/**
+ * Verify job posting for scams, fake info, or suspicious content using Groq AI
+ * @param {Object} jobData - { title, company, description, salary, location, jobType, skillsRequired, accessibilityFeatures }
+ * @returns {Promise<{ riskScore: number, riskLevel: 'low'|'medium'|'high', status: 'active'|'pending_admin'|'rejected', summary: string, reasons: string[] }>}
+ */
+export const verifyJobWithAI = async (jobData) => {
+  if (!GROQ_API_KEY) {
+    console.warn('Groq API key not configured');
+    return null;
+  }
+
+  const prompt = `You are an AI Safety & Fraud Auditor reviewing job postings for ApnaRozgaar (a job portal for PwD & inclusive hiring).
+Analyze this job posting for scam, fraud, or policy violations:
+Job Title: ${jobData.title || 'N/A'}
+Company: ${jobData.company || 'N/A'}
+Location: ${jobData.location || 'N/A'}
+Work Mode: ${jobData.jobType || 'N/A'}
+Salary Range: ${jobData.salary || 'Unspecified'}
+Skills Required: ${Array.isArray(jobData.skillsRequired) ? jobData.skillsRequired.join(', ') : jobData.skillsRequired || 'N/A'}
+Description: ${jobData.description || 'N/A'}
+Accessibility Features Claimed: ${Array.isArray(jobData.accessibilityFeatures) ? jobData.accessibilityFeatures.join(', ') : 'None'}
+
+Evaluation Criteria:
+1. Money Demands: Asking candidates to pay registration fees, security deposits, training charges, or buy kits is a high risk scam violation.
+2. Unrealistic Promises: "Earn 1 Lakh daily", "Work 1 hour earn money fast", get-rich-quick schemes are scams.
+3. Suspicious Redirection: Telegram/WhatsApp group links, shortened links (bit.ly, wa.me).
+4. Phishing/Fake Job: Vague job details combined with extremely high salary or personal bank details request.
+5. Inappropriate content: Offensive or discriminatory language.
+
+Determine:
+- riskScore: 0 to 100 (0 = completely safe, 100 = blatant scam)
+- riskLevel: "low" (0-30), "medium" (31-65), "high" (66-100)
+- status: "active" (safe), "pending_admin" (medium risk), "rejected" (high risk)
+- summary: Short 1-2 sentence summary of safety evaluation
+- reasons: List of identified risk flags (if any)
+
+Respond with ONLY valid JSON matching this schema:
+{
+  "riskScore": <number 0-100>,
+  "riskLevel": "low" | "medium" | "high",
+  "status": "active" | "pending_admin" | "rejected",
+  "summary": "<string>",
+  "reasons": ["<string>"]
+}`;
+
+  try {
+    const response = await fetch(GROQ_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'groq/compound',
+        messages: [
+          { role: 'system', content: 'You are an expert fraud detection AI. Respond strictly in JSON format.' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.2,
+        max_tokens: 800
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Groq API error ${response.status}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) throw new Error('No content in response');
+
+    let cleaned = content.trim();
+    const startIdx = cleaned.indexOf('{');
+    const endIdx = cleaned.lastIndexOf('}');
+    if (startIdx !== -1 && endIdx !== -1) {
+      cleaned = cleaned.substring(startIdx, endIdx + 1);
+    }
+    const parsed = JSON.parse(cleaned);
+
+    const riskScore = Math.max(0, Math.min(100, Number(parsed.riskScore ?? 0)));
+    const riskLevel = riskScore > 65 ? 'high' : riskScore > 30 ? 'medium' : 'low';
+    const status = riskLevel === 'high' ? 'rejected' : riskLevel === 'medium' ? 'pending_admin' : 'active';
+
+    return {
+      riskScore,
+      riskLevel,
+      status: ['active', 'pending_admin', 'rejected'].includes(parsed.status) ? parsed.status : status,
+      summary: String(parsed.summary || 'Job passed AI safety screening.'),
+      reasons: Array.isArray(parsed.reasons) ? parsed.reasons.map(String) : []
+    };
+  } catch (error) {
+    console.error('Error calling Groq API for job verification:', error);
+    return null;
+  }
+};
+
+

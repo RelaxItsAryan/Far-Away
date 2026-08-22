@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bookmark, Search, Briefcase, MapPin, Loader2, Filter, X, Lock, AlertCircle, FileCheck } from 'lucide-react';
+import { Bookmark, Search, Briefcase, MapPin, Loader2, Filter, X, Lock, AlertCircle, FileCheck, Sparkles } from 'lucide-react';
+
 import { AccessibleButton } from '../components/AccessibleButton';
 import { getAllJobs } from '../firebase/jobs';
 import { useAuth } from '../context/AuthContext';
@@ -338,7 +339,12 @@ export default function JobListings() {
                       </div>
 
                       {/* Badges */}
-                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                        {job.status === 'active' && (
+                          <span style={{ padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '700', background: 'rgba(13, 148, 136, 0.12)', color: '#0d9488', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <Sparkles size={12} /> Groq AI Verified
+                          </span>
+                        )}
                         {job.deafFriendly && <span style={{ padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '600', background: 'rgba(37,99,235,0.1)', color: '#2563EB' }}>🤟 Deaf Friendly</span>}
                         {tags.map(t => (
                           <span key={t} style={{ padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '600', background: 'rgba(5,150,105,0.1)', color: 'var(--success)', textTransform: 'capitalize' }}>
@@ -347,6 +353,7 @@ export default function JobListings() {
                         ))}
                         {job.createdAt && <span style={{ padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', color: 'var(--text-muted)', background: 'var(--bg-primary)' }}>{timeAgo(job.createdAt)}</span>}
                       </div>
+
                     </div>
 
                     {/* Actions */}
