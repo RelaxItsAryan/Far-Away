@@ -125,10 +125,11 @@ const InterviewPracticeSession = () => {
     let mounted = true;
 
     const init = async () => {
-      // Start webcam
+      // Start webcam with BOTH video and audio enabled to ask permissions at once
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { width: 640, height: 480, frameRate: { ideal: 30 } },
+          audio: true,
         });
         if (!mounted) { stream.getTracks().forEach((t) => t.stop()); return; }
         videoStreamRef.current = stream;
@@ -137,16 +138,32 @@ const InterviewPracticeSession = () => {
           await videoRef.current.play().catch(() => {});
         }
         setWebcamAvailable(true);
-      } catch {
-        setWebcamAvailable(false);
-        return;
+      } catch (err) {
+        console.warn('Webcam + Audio combined capture failed, trying video only:', err);
+        // Fallback to video only if mic is blocked or unavailable
+        try {
+          const videoOnlyStream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 640, height: 480, frameRate: { ideal: 30 } },
+          });
+          if (!mounted) { videoOnlyStream.getTracks().forEach((t) => t.stop()); return; }
+          videoStreamRef.current = videoOnlyStream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = videoOnlyStream;
+            await videoRef.current.play().catch(() => {});
+          }
+          setWebcamAvailable(true);
+        } catch {
+          if (mounted) setWebcamAvailable(false);
+          return;
+        }
       }
 
       // Load MediaPipe models
       try {
         await confidenceEngine.initialize();
         if (mounted) setEngineReady(true);
-      } catch {
+      } catch (err) {
+        console.error('Confidence Engine init failed:', err);
         if (mounted) setEngineError(true);
         return;
       }
@@ -176,13 +193,22 @@ const InterviewPracticeSession = () => {
   // ── Audio Recording ─────────────────────────────────────────────────────────
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Reuse the existing active stream if audio track is present
+      let stream = videoStreamRef.current;
+      const hasAudioTrack = stream && stream.getAudioTracks().length > 0;
+
+      if (!hasAudioTrack) {
+        // Fallback: request mic access if stream wasn't initialized or has no audio
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      }
+
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
       // Waveform visualiser
-      const audioCtx = new AudioContext();
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      const audioCtx = new AudioContextClass();
       audioContextRef.current = audioCtx;
       const source = audioCtx.createMediaStreamSource(stream);
       const analyser = audioCtx.createAnalyser();
@@ -195,8 +221,17 @@ const InterviewPracticeSession = () => {
       };
 
       mediaRecorder.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        audioCtx.close();
+        // Stop the temporary mic stream if it wasn't the shared video stream
+        if (!hasAudioTrack) {
+          stream.getTracks().forEach((t) => t.stop());
+        }
+        
+        try {
+          audioCtx.close();
+        } catch (err) {
+          console.error(err);
+        }
+
         const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
 
         // Send to Groq Whisper for transcription
@@ -219,6 +254,7 @@ const InterviewPracticeSession = () => {
       setIsRecording(true);
       setRecordingTime(0);
 
+      if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = setInterval(() => setRecordingTime((t) => t + 1), 1000);
 
       // Live waveform bars
@@ -233,8 +269,11 @@ const InterviewPracticeSession = () => {
     } catch (err) {
       console.error('Microphone error:', err);
       alert('Could not access microphone. Please check permissions.');
+      setIsRecording(false);
+      setTranscribing(false);
     }
   };
+
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
