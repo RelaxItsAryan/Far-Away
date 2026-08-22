@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, CheckCircle, RefreshCw, AlertCircle, Eye, EyeOff } from 'lucide-react';
-import { registerUser, loginUser, resendVerificationEmail, signInWithGoogle } from '../firebase/auth';
+import { registerUser, loginUser, resendVerificationEmail, signInWithGoogle, loginAsGuest } from '../firebase/auth';
 import { useAuth } from '../context/AuthContext';
 import interview from '../assets/interview.jpg';
 
@@ -184,6 +184,10 @@ const AuthPage = () => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
 
   useEffect(() => {
+    const role = searchParams.get('role');
+    if (role === 'candidate' || role === 'employer') {
+      setUserType(role);
+    }
     if (searchParams.get('verified') === 'true') {
       setSuccess('🎉 Email verified! You can now sign in.');
       setIsLogin(true);
@@ -261,6 +265,23 @@ const AuthPage = () => {
       }
     } catch {
       setError('An unexpected error occurred.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGuestSignIn = async () => {
+    setLoading(true); setError(''); setSuccess('');
+    try {
+      const result = await loginAsGuest(userType);
+      if (result.success) {
+        setSuccess('🎉 Logged in as guest! Redirecting...');
+        setTimeout(() => navigate(userType === 'employer' ? '/employer' : '/'), 1200);
+      } else {
+        setError(result.error || 'Guest login failed.');
+      }
+    } catch {
+      setError('An unexpected error occurred during guest login.');
     } finally {
       setLoading(false);
     }
@@ -541,6 +562,25 @@ const AuthPage = () => {
                   >
                     {loading ? 'Please wait…' : isLogin ? 'Login' : 'Create Account'}
                   </button>
+
+                  {isLogin && (
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={handleGuestSignIn}
+                      style={{
+                        ...primaryBtn,
+                        background: 'none',
+                        border: `2px solid ${C.secondary}`,
+                        color: C.secondary,
+                        marginTop: '8px'
+                      }}
+                      onMouseEnter={e => { if (!loading) e.currentTarget.style.background = 'rgba(0,106,97,0.05)'; }}
+                      onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                    >
+                      {loading ? 'Please wait…' : 'Sign in as Guest'}
+                    </button>
+                  )}
                 </form>
 
                 {/* Divider */}

@@ -9,6 +9,7 @@ import JobDetail from './pages/JobDetail';
 import EmployerDashboard from './pages/EmployerDashboard';
 import ChatbotPage from './pages/ChatbotPage';
 import AuthPage from './pages/AuthPage';
+import RoleSelectionModal from './components/RoleSelectionModal';
 import ScreenReader from './ScreenReader';
 import MotorAccessibilityToolbar from './MotorAccessibilityToolbar';
 import KeyboardShortcutsHelp from './KeyboardShortcutsHelp';
@@ -761,7 +762,28 @@ const AppLayout = () => {
   const isResumeBuilderPage = location.pathname === '/resume-builder';
   const isHomePage = location.pathname === '/';
   const isAuthPage = location.pathname === '/auth';
+<<<<<<< HEAD
   const isInterviewPrepPage = location.pathname.startsWith('/interview-prep');
+=======
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [selectedRole, setSelectedRole] = useState(() => {
+    return localStorage.getItem('selectedRole') || null;
+  });
+
+  useEffect(() => {
+    if (isAuthPage && !selectedRole) {
+      setShowRoleModal(true);
+    }
+  }, [isAuthPage, selectedRole]);
+
+  const handleRoleSelect = (role) => {
+    setSelectedRole(role);
+    localStorage.setItem('selectedRole', role);
+    setShowRoleModal(false);
+    // Navigate with role param so AuthPage can pre-select it
+    navigate(`/auth?role=${role}`);
+  };
+>>>>>>> f56e70f593fc8696f26e8d8af4cf34bf90590f9c
 
   return (
     <>
@@ -794,6 +816,19 @@ const AppLayout = () => {
 
         {!(isChatPage || isResumeBuilderPage || isAuthPage || isInterviewPrepPage) && <Footer />}
       </div>
+
+      {/* Role Selection Modal for Auth Page */}
+      <AnimatePresence>
+        {showRoleModal && (
+          <RoleSelectionModal
+            onSelect={handleRoleSelect}
+            onClose={() => {
+              setShowRoleModal(false);
+              navigate('/');
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Chatbot quick launch button above voice control */}
       {!(isChatPage || isAuthPage) && (
