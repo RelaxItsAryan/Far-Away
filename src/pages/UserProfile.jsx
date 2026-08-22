@@ -153,77 +153,132 @@ export default function UserProfile() {
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '36px 24px 80px' }}>
-
-      {/* ── Hero Card ── */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ ...card, marginBottom: '28px', position: 'relative', overflow: 'hidden' }}>
+      <motion.div 
+        initial={{ opacity: 0, y: 16 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        style={{ 
+          ...card, 
+          marginBottom: '28px', 
+          position: 'relative', 
+          overflow: 'hidden',
+          padding: '24px 24px 20px 24px'
+        }}
+      >
         {/* Gradient banner */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '120px', background: 'linear-gradient(135deg,rgba(139,92,246,0.18),rgba(20,184,166,0.12))', borderRadius: '18px 18px 0 0' }} />
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '100px', background: 'linear-gradient(135deg,rgba(139,92,246,0.18),rgba(20,184,166,0.12))', borderRadius: '18px 18px 0 0' }} />
 
-        <div style={{ position: 'relative', display: 'flex', gap: '24px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-          {/* Avatar */}
-          <div style={{ width: '96px', height: '96px', borderRadius: '50%', background: 'var(--primary-gradient)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.4rem', fontWeight: '800', flexShrink: 0, border: '4px solid var(--bg-primary)', boxShadow: 'var(--card-shadow-hover)' }}>
-            {name.charAt(0).toUpperCase()}
+        {/* Profile Details Container */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative', zIndex: 2 }}>
+          
+          {/* Top Row: Avatar, Name & Main Actions */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '20px', flexWrap: 'wrap', marginTop: '30px' }}>
+            
+            {/* Avatar overlapping the banner */}
+            <div style={{ 
+              width: '90px', 
+              height: '90px', 
+              borderRadius: '50%', 
+              background: 'var(--primary-gradient)', 
+              color: 'white', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              fontSize: '2.2rem', 
+              fontWeight: '800', 
+              flexShrink: 0, 
+              border: '4px solid var(--bg-secondary)', 
+              boxShadow: 'var(--card-shadow-hover)',
+              marginTop: '-45px'
+            }}>
+              {name.charAt(0).toUpperCase()}
+            </div>
+
+            {/* Name and Quick Role Info */}
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: '800', margin: '0 0 2px 0', lineHeight: '1.2' }}>{name}</h1>
+              <p style={{ margin: 0, color: 'var(--accent-purple)', fontWeight: '600', fontSize: '0.9rem', textTransform: 'capitalize' }}>
+                {userType || 'Candidate'} {workMode && `• ${workMode}`} {expLevel && `• ${expLevel} Level`}
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              {resumeLink && (
+                <a href={resumeLink} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                  <AccessibleButton variant="outline" style={{ fontSize: '0.85rem', padding: '0 14px', minHeight: '38px' }}>
+                    <BookOpen size={14} /> Resume
+                  </AccessibleButton>
+                </a>
+              )}
+              <AccessibleButton variant="outline" onClick={() => navigate('/profile/create')} style={{ fontSize: '0.85rem', padding: '0 14px', minHeight: '38px' }}>
+                <Edit3 size={14} /> {hasProfile ? 'Edit Profile' : 'Complete Profile'}
+              </AccessibleButton>
+              <AccessibleButton
+                variant="outline"
+                onClick={() => fetchProfile(true)}
+                disabled={refreshing}
+                style={{ fontSize: '0.85rem', padding: '0 14px', minHeight: '38px' }}
+                title="Refresh profile data from database"
+              >
+                <RefreshCw size={14} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
+                {refreshing ? 'Refreshing…' : 'Refresh'}
+              </AccessibleButton>
+              <AccessibleButton variant="ghost" onClick={async () => { await logout(); navigate('/'); }} style={{ fontSize: '0.85rem', padding: '0 14px', minHeight: '38px', color: '#ef4444' }}>
+                <LogOut size={14} /> Sign Out
+              </AccessibleButton>
+            </div>
+
           </div>
 
-          <div style={{ flex: 1, minWidth: '180px' }}>
-            <h1 style={{ fontSize: '1.9rem', marginBottom: '6px' }}>{name}</h1>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '14px' }}>
-              {email && <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Mail size={13} />{email}</span>}
-              {phone && <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Phone size={13} />{phone}</span>}
-              {(city || stateName) && <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><MapPin size={13} />{[city, stateName].filter(Boolean).join(', ')}</span>}
-              {availableFrom && <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Calendar size={13} />Available from {new Date(availableFrom).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
+          {/* Bottom Row: Contact Details & Status Badges */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            flexWrap: 'wrap', 
+            gap: '16px', 
+            borderTop: '1px solid var(--border)', 
+            paddingTop: '16px',
+            marginTop: '8px'
+          }}>
+            
+            {/* Contact Information List */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+              {email && <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Mail size={14} />{email}</span>}
+              {phone && <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Phone size={14} />{phone}</span>}
+              {(city || stateName) && <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MapPin size={14} />{[city, stateName].filter(Boolean).join(', ')}</span>}
+              {availableFrom && <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={14} />Available from {new Date(availableFrom).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
             </div>
+
+            {/* Status Badges */}
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {profile?.isPremium && (
-                <span style={{ ...tag('rgba(255,215,0,0.15)', '#FFD700'), display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Crown size={12} /> Premium Member
+                <span style={{ ...tag('rgba(255,215,0,0.15)', '#FFD700'), display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Crown size={12} /> Premium
                 </span>
               )}
-              <span style={{ ...tag('rgba(5,150,105,0.1)', 'var(--success)'), display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <CheckCircle size={12} /> Email Verified
+              <span style={{ ...tag('rgba(5,150,105,0.1)', 'var(--success)'), display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <CheckCircle size={12} /> Verified Email
               </span>
               {profile?.certificationStatus === 'verified' && (
-                <span style={{ ...tag('rgba(59,130,246,0.1)', '#3b82f6'), display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <FileCheck size={12} /> Certificate Verified
+                <span style={{ ...tag('rgba(59,130,246,0.1)', '#3b82f6'), display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <FileCheck size={12} /> Verified Certificate
                 </span>
               )}
               {profile?.certificationStatus === 'pending' && (
-                <span style={{ ...tag('rgba(249,115,22,0.1)', '#f97316'), display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ ...tag('rgba(249,115,22,0.1)', '#f97316'), display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                   <AlertCircle size={12} /> Verification Pending
                 </span>
               )}
-              {userType && <span style={{ ...tag('rgba(139,92,246,0.1)', 'var(--accent-purple)'), textTransform: 'capitalize' }}>{userType}</span>}
-              {workMode && <span style={{ ...tag('rgba(20,184,166,0.1)', 'var(--accent-teal)'), textTransform: 'capitalize' }}>{workMode}</span>}
-              {expLevel && <span style={{ ...tag('rgba(99,102,241,0.1)', '#6366f1'), textTransform: 'capitalize' }}>{expLevel} Level</span>}
-              {openToRelocation && <span style={{ ...tag('rgba(16,185,129,0.1)', '#10b981'), display: 'flex', alignItems: 'center', gap: '4px' }}><Globe size={12} /> Open to Relocation</span>}
+              {openToRelocation && (
+                <span style={{ ...tag('rgba(16,185,129,0.1)', '#10b981'), display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Globe size={12} /> Relocation OK
+                </span>
+              )}
             </div>
+
           </div>
 
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {resumeLink && (
-              <a href={resumeLink} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-                <AccessibleButton variant="outline" style={{ fontSize: '0.85rem', padding: '0 14px', minHeight: '38px' }}>
-                  <BookOpen size={14} /> Resume
-                </AccessibleButton>
-              </a>
-            )}
-            <AccessibleButton variant="outline" onClick={() => navigate('/profile/create')} style={{ fontSize: '0.85rem', padding: '0 14px', minHeight: '38px' }}>
-              <Edit3 size={14} /> {hasProfile ? 'Edit Profile' : 'Complete Profile'}
-            </AccessibleButton>
-            <AccessibleButton
-              variant="outline"
-              onClick={() => fetchProfile(true)}
-              disabled={refreshing}
-              style={{ fontSize: '0.85rem', padding: '0 14px', minHeight: '38px' }}
-              title="Refresh profile data from database"
-            >
-              <RefreshCw size={14} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
-              {refreshing ? 'Refreshing…' : 'Refresh'}
-            </AccessibleButton>
-            <AccessibleButton variant="ghost" onClick={async () => { await logout(); navigate('/'); }} style={{ fontSize: '0.85rem', padding: '0 14px', minHeight: '38px', color: '#ef4444' }}>
-              <LogOut size={14} /> Sign Out
-            </AccessibleButton>
-          </div>
         </div>
       </motion.div>
 
@@ -236,11 +291,54 @@ export default function UserProfile() {
         </motion.div>
       )}
 
-      {/* ── Main Info Grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(290px,1fr))', gap: '20px' }}>
+      {/* ── Main Info Grid (Bento Grid) ── */}
+      <div 
+        className="bento-grid"
+        style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', 
+          gap: '20px',
+        }}
+      >
+        {/* Inject CSS rules for the bento grid desktop behavior */}
+        <style>{`
+          @media (min-width: 1024px) {
+            .bento-grid {
+              grid-template-columns: repeat(3, 1fr) !important;
+              grid-auto-flow: dense;
+            }
+            .bento-skills {
+              grid-column: span 2;
+            }
+            .bento-work {
+              grid-row: span 2;
+            }
+            .bento-accessibility {
+              grid-row: span 2;
+            }
+            .bento-certificate {
+              grid-column: span 2;
+            }
+            .bento-account {
+              grid-column: span 1;
+            }
+            .bento-tech {
+              grid-column: span 1;
+            }
+            .bento-comm {
+              grid-column: span 1;
+            }
+          }
+        `}</style>
 
         {/* Skills */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={card}>
+        <motion.div 
+          className="bento-skills"
+          initial={{ opacity: 0, y: 16 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.1 }} 
+          style={card}
+        >
           <p style={sectionTitle}><Star size={18} color="var(--accent-purple)" /> Skills</p>
           {skills.length > 0 ? (
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -250,7 +348,13 @@ export default function UserProfile() {
         </motion.div>
 
         {/* Work Preferences */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }} style={card}>
+        <motion.div 
+          className="bento-work"
+          initial={{ opacity: 0, y: 16 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.14 }} 
+          style={card}
+        >
           <p style={sectionTitle}><Briefcase size={18} color="var(--accent-teal)" /> Work Preferences</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.9rem' }}>
             {[
@@ -287,7 +391,13 @@ export default function UserProfile() {
         </motion.div>
 
         {/* Accessibility Needs */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }} style={card}>
+        <motion.div 
+          className="bento-accessibility"
+          initial={{ opacity: 0, y: 16 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.18 }} 
+          style={card}
+        >
           <p style={sectionTitle}><Shield size={18} color="var(--success)" /> Accessibility Needs</p>
           {disabilities.length > 0 ? (
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px' }}>
@@ -306,7 +416,13 @@ export default function UserProfile() {
 
         {/* Assistive Technology */}
         {assistiveTech.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={card}>
+          <motion.div 
+            className="bento-tech"
+            initial={{ opacity: 0, y: 16 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.2 }} 
+            style={card}
+          >
             <p style={sectionTitle}><Headphones size={18} color="var(--accent-purple)" /> Assistive Technology</p>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {assistiveTech.map(t => <span key={t} style={{ padding: '5px 12px', borderRadius: '14px', fontSize: '0.82rem', fontWeight: '600', background: 'rgba(139,92,246,0.08)', color: 'var(--accent-purple)' }}>{t}</span>)}
@@ -316,7 +432,13 @@ export default function UserProfile() {
 
         {/* Communication Preferences */}
         {(primaryComm || interviewPrefs.length > 0 || contactPrefs.length > 0) && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }} style={card}>
+          <motion.div 
+            className="bento-comm"
+            initial={{ opacity: 0, y: 16 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.22 }} 
+            style={card}
+          >
             <p style={sectionTitle}><MessageSquare size={18} color="var(--accent-teal)" /> Communication</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.9rem' }}>
               {primaryComm && (
@@ -346,7 +468,13 @@ export default function UserProfile() {
         )}
 
         {/* Account */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }} style={card}>
+        <motion.div 
+          className="bento-account"
+          initial={{ opacity: 0, y: 16 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.24 }} 
+          style={card}
+        >
           <p style={sectionTitle}><Settings size={18} color="var(--text-muted)" /> Account</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.9rem' }}>
             {[
@@ -364,7 +492,13 @@ export default function UserProfile() {
         </motion.div>
 
         {/* Certificate Verification */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }} style={card}>
+        <motion.div 
+          className="bento-certificate"
+          initial={{ opacity: 0, y: 16 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.28 }} 
+          style={card}
+        >
           <p style={sectionTitle}><FileCheck size={18} color={verificationPending ? '#f97316' : profile?.certificationStatus === 'verified' ? '#3b82f6' : 'var(--text-muted)'} /> Certificate Verification</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {profile?.certificationStatus === 'verified' ? (
